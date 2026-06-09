@@ -41,7 +41,7 @@ Most property management tools are just CRUD apps. PropMind is built around **re
                │                            │
        ┌───────▼────────┐          ┌────────▼───────┐
        │   Admin App    │          │  Tenant App    │
-       │  Port :3001    │          │  Port :3000    │
+       │                │          │                │
        │  Express + HBS │          │  Express + HBS │
        └───────┬────────┘          └────────┬───────┘
                │                            │
@@ -202,10 +202,10 @@ BullMQ Workers (Redis-backed, fallback to inline) ─────────┘
 ## 🧱 Actual Project Structure
 
 ```
-Property-MS-main/
+PropMind/
 │
 ├── apps/
-│   ├── admin-app/                  # Admin portal (Port 3001)
+│   ├── admin-app/                  # Admin portal 
 │   │   ├── app.js                  # Express entry point
 │   │   ├── src/modules/admin/
 │   │   │   ├── admin.controller.js          # 40+ route handlers
@@ -214,7 +214,7 @@ Property-MS-main/
 │   │   │   └── stripeConnect.controller.js  # Stripe Connect onboarding
 │   │   └── views/                  # Handlebars templates
 │   │
-│   └── tenant-app/                 # Tenant portal (Port 3000)
+│   └── tenant-app/                 # Tenant portal 
 │       ├── app.js
 │       ├── src/modules/tenant/
 │       │   ├── tenant.controller.js         # 50+ route handlers
@@ -341,8 +341,9 @@ Notification  ◄──── In-app alerts for both roles
 ### Install
 
 ```bash
-git clone https://github.com/panakantinandu/Property-MS-main.git
-cd Property-MS-main
+git clone https://github.com/panakantinandu/PropMind.git
+cd apps/admin-app
+cd apps/tenant-app
 npm run setup        # installs root + both app dependencies
 cp .env.example .env
 ```
@@ -384,8 +385,8 @@ NODE_ENV=development
 
 ```bash
 npm run dev:all         # Both apps (hot reload)
-npm run dev:admin       # Admin only  → http://localhost:3001
-npm run dev:tenant      # Tenant only → http://localhost:3000
+npm run dev:admin       # Admin only  → http://localhost:xxxx
+npm run dev:tenant      # Tenant only → http://localhost:xxxx
 ```
 
 ### Test
