@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const ledgerEntrySchema = new mongoose.Schema({
+    adminId: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
     tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', required: true },
     type: { type: String, enum: ['debit', 'credit'], required: true },
     amount: { type: Number, required: true },

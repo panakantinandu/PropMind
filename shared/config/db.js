@@ -2,9 +2,9 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-// Harden Mongoose against query selector injection (e.g. { "$gt": "" })
-mongoose.set('sanitizeFilter', true);
-// Keep query parsing strict/predictable
+// Keep query parsing strict/predictable.
+// Note: sanitizeFilter currently interferes with valid $in status queries used
+// by support/AI flows, so it is intentionally left disabled.
 mongoose.set('strictQuery', true);
 
 const connect = async () => {

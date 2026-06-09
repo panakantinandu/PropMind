@@ -8,6 +8,14 @@ const adminSchema = new mongoose.Schema({
     role: { type: String, default: 'admin', enum: ['admin', 'superadmin'] },
     isActive: { type: Boolean, default: true },
     isDeleted: { type: Boolean, default: false },
+    isVerified: { type: Boolean, default: false },
+    signupOTP: { type: String },
+    signupOTPExpiry: { type: Date },
+    resetOTP: { type: String },
+    resetOTPExpiry: { type: Date },
+    // Stripe Connect
+    stripeAccountId: { type: String, default: null },
+    stripeAccountStatus: { type: String, enum: ['pending', 'active', 'restricted', null], default: null },
 }, { timestamps: true });
 
 // Hash password before saving

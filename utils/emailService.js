@@ -19,7 +19,11 @@ if (process.env.RESEND_API_KEY) {
  */
 async function sendResetOtpEmail(toEmail, otp, recipientName = 'User') {
   if (!resend) {
-    throw new Error('Resend service is not initialized. Please set RESEND_API_KEY in environment.');
+    logger.warn(`[MOCK EMAIL] Would have sent Password Reset OTP to ${toEmail}. OTP: ${otp}`);
+    console.log(`\n==============================================`);
+    console.log(`[MOCK EMAIL] PASSWORD RESET OTP FOR ${toEmail}: ${otp}`);
+    console.log(`==============================================\n`);
+    return { id: 'mock-id-' + Date.now() };
   }
 
   try {
@@ -82,7 +86,11 @@ async function sendResetOtpEmail(toEmail, otp, recipientName = 'User') {
  */
 async function sendPasswordChangeOtpEmail(toEmail, otp, recipientName = 'User') {
   if (!resend) {
-    throw new Error('Resend service is not initialized. Please set RESEND_API_KEY in environment.');
+    logger.warn(`[MOCK EMAIL] Would have sent Password Change OTP to ${toEmail}. OTP: ${otp}`);
+    console.log(`\n==============================================`);
+    console.log(`[MOCK EMAIL] PASSWORD CHANGE OTP FOR ${toEmail}: ${otp}`);
+    console.log(`==============================================\n`);
+    return { id: 'mock-id-' + Date.now() };
   }
 
   try {
@@ -144,8 +152,72 @@ function isResendAvailable() {
   return resend !== null;
 }
 
+/**
+ * Send Signup OTP Email via Resend
+ * @param {string} toEmail - Recipient email
+ * @param {string} otp - 6-digit OTP code
+ * @param {string} recipientName - Name of recipient
+ * @returns {Promise<Object>} Email response
+ */
+async function sendSignupOtpEmail(toEmail, otp, recipientName = 'User') {
+  if (!resend) {
+    logger.warn(`[MOCK EMAIL] Would have sent Signup OTP to ${toEmail}. OTP: ${otp}`);
+    console.log(`\n==============================================`);
+    console.log(`[MOCK EMAIL] SIGNUP OTP FOR ${toEmail}: ${otp}`);
+    console.log(`==============================================\n`);
+    return { id: 'mock-id-' + Date.now() };
+  }
+
+  try {
+    console.log(`[RESEND] Sending signup OTP to ${toEmail}`);
+    const startTime = Date.now();
+
+    const result = await resend.emails.send({
+      from: 'LeaseHub <onboarding@resend.dev>',
+      to: toEmail,
+      subject: 'Verify your LeaseHub Account',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; text-align: center;">Welcome to LeaseHub!</h1>
+          </div>
+          
+          <div style="background: #f5f5f5; padding: 30px; border-radius: 0 0 10px 10px;">
+            <p>Hi <strong>${recipientName}</strong>,</p>
+            
+            <p>Thank you for signing up for LeaseHub. To complete your registration and activate your account, please verify your email address.</p>
+            
+            <div style="background: white; padding: 20px; border-radius: 8px; text-align: center; margin: 25px 0;">
+              <p style="color: #666; margin: 0 0 10px 0; font-size: 14px;">Your verification OTP is:</p>
+              <h2 style="color: #667eea; font-size: 36px; letter-spacing: 8px; margin: 10px 0;">${otp}</h2>
+              <p style="color: #999; margin: 10px 0 0 0; font-size: 12px;">Valid for 10 minutes</p>
+            </div>
+            
+            <p style="color: #666;">Enter this OTP on the verification page to activate your account.</p>
+            
+            <p style="color: #999; font-size: 12px; margin-top: 30px;">
+              This is an automated email from LeaseHub. Please do not reply to this email.
+            </p>
+          </div>
+        </div>
+      `,
+    });
+
+    const duration = ((Date.now() - startTime) / 1000).toFixed(3);
+    logger.info(`[RESEND] ✅ Signup OTP sent to ${toEmail} in ${duration}s, ID: ${result.id}`);
+    console.log(`[RESEND] ✅ Email sent successfully in ${duration}s, Message ID: ${result.id}`);
+    
+    return result;
+  } catch (error) {
+    logger.error('[RESEND] ❌ Failed to send signup OTP:', error);
+    console.error('[RESEND] ❌ Email error:', error.message);
+    throw error;
+  }
+}
+
 module.exports = {
   sendResetOtpEmail,
   sendPasswordChangeOtpEmail,
+  sendSignupOtpEmail,
   isResendAvailable
 };

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const propertySchema = new mongoose.Schema({
+    adminId: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
     propertyname: { type: String, required: true },
     propertyaddress: { type: String, required: true },
     city: { type: String },
@@ -18,8 +19,8 @@ const propertySchema = new mongoose.Schema({
     amenities: [String],
     images: [String],
     tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant' },
-    // Status now supports reservation lifecycle
-    status: { type: String, default: 'available', enum: ['available', 'reserved', 'occupied', 'maintenance'] },
+    // Status now supports full reservation and lease lifecycle
+    status: { type: String, default: 'available', enum: ['available', 'reserved', 'leased', 'occupied', 'maintenance'] },
     isDeleted: { type: Boolean, default: false },
 }, { timestamps: true });
 

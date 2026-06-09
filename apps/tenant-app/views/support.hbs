@@ -1,0 +1,689 @@
+{{!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{csrfToken}}">
+    <title>Support - LeaseHub</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body data-tenant-id="{{tenantId}}">
+    <nav class="navbar navbar-expand-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem 2rem;">
+        <a class="navbar-brand text-white" href="/tenant/dashboard">🏠 LeaseHub</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item"><a class="nav-link text-white" href="/tenant/dashboard">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="/tenant/support">Support</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="/tenant/logout">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-4">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h3>How can we help today?</h3>
+                        <div id="action-cards" class="d-flex flex-column">
+                            <button class="action-card btn btn-light mb-2" data-action="pay_rent">Pay Rent</button>
+                            <button class="action-card btn btn-light mb-2" data-action="booking_deposit">Booking Deposit</button>
+                            <button class="action-card btn btn-light mb-2" data-action="application_status">Application Status</button>
+                            <button class="action-card btn btn-light mb-2" data-action="lease_questions">Lease Questions</button>
+                            <button class="action-card btn btn-light mb-2" data-action="maintenance">Maintenance Issue</button>
+                            <button class="action-card btn btn-light mb-2" data-action="payments_refunds">Payments & Refunds</button>
+                            <button class="action-card btn btn-outline-primary mt-3" data-action="speak_support">Speak with Support</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Recent tickets</h5>
+                        <div id="tenant-ticket-list">
+                            {{#if tickets}}
+                                <ul class="list-unstyled">
+                                    {{#each tickets}}
+                                    <li class="mb-2">
+                                        <a href="#" class="ticket-link" data-id="{{this._id}}">
+                                            <strong>{{this.subject}}</strong>
+                                            <div class="text-muted small">{{this.status}} • {{this.createdAt}}</div>
+                                        </a>
+                                    </li>
+                                    {{/each}}
+                                </ul>
+                            {{else}}
+                                <p class="text-muted">No tickets yet.</p>
+                            {{/if}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-8">
+                <div class="card mb-3">
+                    <div class="card-body" id="conversation-area">
+                        <div id="guided-flow" class="mb-3">
+                            <div id="guided-content">Select an action to get started. Suggestions appear here.</div>
+                        </div>
+
+                        <div id="chat-container" style="display:none; max-height:600px; overflow:auto; border-top:1px solid #eee; padding-top:12px;">
+                            <div id="messages" class="mb-3"></div>
+                            <div id="suggested-questions" class="mb-2"></div>
+                            <form id="chat-form" class="d-flex">
+                                <input id="chat-input" class="form-control mr-2" placeholder="Type a question or choose a suggestion" />
+                                <button class="btn btn-primary" type="submit">Send</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/support.js?v={{timestamp}}"></script>
+</body>
+</html> --}}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{csrfToken}}">
+  <title>Support - LeaseHub</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --surface2: #f8fafc;
+      --border: #e5e7eb;
+      --accent: #667eea;
+      --accent2: #8b5cf6;
+      --green: #10b981;
+      --red: #ef4444;
+      --amber: #f59e0b;
+      --text: #111827;
+      --text2: #4b5563;
+      --text3: #6b7280;
+      --user-bubble: #eff6ff;
+      --ai-bubble: #f8fafc;
+      --radius: 14px;
+      --font: 'DM Sans', sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 0 1.5rem;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 18px rgba(15,23,42,.12);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .nav-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; color: #fff; text-decoration: none; }
+    .nav-brand .dot { width: 8px; height: 8px; border-radius: 50%; background: #fbbf24; }
+    .nav-links { display: flex; align-items: center; gap: 8px; }
+    .nav-links a { color: rgba(255,255,255,.9); text-decoration: none; font-size: 13px; padding: 6px 14px; border-radius: 10px; transition: background .15s, color .15s; }
+    .nav-links a:hover, .nav-links a.active { background: rgba(255,255,255,.18); color: #fff; }
+    .nav-user { font-size: 12px; color: rgba(255,255,255,.85); display: flex; align-items: center; gap: 12px; }
+    .nav-avatar { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; }
+
+    /* LAYOUT */
+    .layout {
+      max-width: 1400px;
+      margin: 24px auto 40px;
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      gap: 24px;
+      padding: 0 16px 20px;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .sidebar-header,
+    .sidebar-section,
+    .sidebar-footer { padding: 22px; }
+    .sidebar-footer { padding-top: 0; }
+    .sidebar-title,
+    .sidebar-section-title { font-size: 12px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; color: var(--text3); margin-bottom: 16px; }
+
+    /* QUICK ACTION CHIPS */
+    .quick-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .chip { border: 1px solid var(--border); background: var(--surface2); color: var(--text2); font-size: 13px; padding: 9px 14px; border-radius: 999px; cursor: pointer; transition: border-color .15s, color .15s, background .15s; }
+    .chip:hover { border-color: var(--accent); color: var(--accent); background: #eef2ff; }
+    .chip.active { border-color: var(--accent); color: var(--accent); background: rgba(102,126,234,.12); }
+
+    /* TICKET LIST */
+    .sidebar-section { padding: 0 22px 22px; flex: 1; overflow-y: auto; }
+    .sidebar-section-title { font-size: 12px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; color: var(--text3); margin-bottom: 16px; }
+    .ticket-item { padding: 16px; border-radius: 14px; margin-bottom: 12px; cursor: pointer; transition: transform .15s, box-shadow .15s; border: 1px solid var(--border); background: var(--surface2); }
+    .ticket-item:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(15,23,42,.05); }
+    .ticket-item.active { background: #ffffff; border-color: rgba(102,126,234,.2); }
+    .ticket-subject { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ticket-meta { font-size: 12px; color: var(--text3); margin-top: 5px; display: flex; align-items: center; gap: 8px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .status-open { background: var(--amber); }
+    .status-resolved { background: var(--green); }
+    .status-closed { background: var(--text3); }
+    .status-pending { background: var(--accent2); }
+    .no-tickets { font-size: 13px; color: var(--text3); text-align: center; padding: 1.5rem 0; }
+
+    /* NEW TICKET BTN */
+    .sidebar-footer { padding: 0 22px 22px; border-top: 1px solid var(--border); }
+    .btn-new-ticket { width: 100%; padding: 12px 16px; background: var(--accent); color: white; border: none; border-radius: 14px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
+    .btn-new-ticket:hover { opacity: .92; }
+
+    /* CHAT AREA */
+    .chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+
+    .chat-header { padding: 22px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 14px; }
+    .ai-avatar { width: 42px; height: 42px; border-radius: 14px; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .chat-header-info { flex: 1; }
+    .chat-header-name { font-size: 16px; font-weight: 700; color: var(--text); }
+    .chat-header-status { font-size: 13px; color: var(--text3); display: flex; align-items: center; gap: 8px; }
+    .chat-header-status::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block; }
+    .chat-header-actions { display: flex; gap: 8px; }
+    .btn-icon { width: 36px; height: 36px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface2); display: flex; align-items: center; justify-content: center; color: var(--text2); font-size: 16px; cursor: pointer; }
+    .btn-icon:hover { background: #eef2ff; color: var(--text); }
+
+    /* MESSAGES */
+    .messages-container { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 18px; background: var(--surface2); }
+    .messages-container::-webkit-scrollbar { width: 6px; }
+    .messages-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+
+    .welcome-state { padding: 28px; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 16px; }
+    .welcome-icon { font-size: 46px; }
+    .welcome-title { font-size: 22px; font-weight: 700; color: var(--text); }
+    .welcome-sub { font-size: 14px; color: var(--text3); max-width: 420px; line-height: 1.7; }
+    .welcome-suggestions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .suggestion-pill { font-size: 13px; padding: 10px 16px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface2); color: var(--text2); cursor: pointer; }
+    .suggestion-pill:hover { border-color: var(--accent); color: var(--accent); background: #eef2ff; }
+
+    .msg { display: flex; gap: 10px; align-items: flex-end; max-width: 76%; }
+    .msg.user { flex-direction: row-reverse; align-self: flex-end; }
+    .msg.ai { align-self: flex-start; }
+    .msg-avatar { width: 30px; height: 30px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+    .msg.ai .msg-avatar { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+    .msg.user .msg-avatar { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); }
+    .msg-bubble { padding: 14px 16px; border-radius: 18px; font-size: 14px; line-height: 1.65; }
+    .msg.ai .msg-bubble { background: #ffffff; border: 1px solid var(--border); color: var(--text); }
+    .msg.user .msg-bubble { background: #eff6ff; border: 1px solid #dbeafe; color: var(--text); }
+    .msg-time { font-size: 11px; color: var(--text3); margin-top: 6px; }
+
+    .ticket-created-card { background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.25); border-radius: 14px; padding: 14px 16px; font-size: 13px; }
+    .ticket-created-card .tc-title { font-weight: 600; color: var(--green); margin-bottom: 4px; }
+    .ticket-created-card .tc-sub { color: var(--text3); }
+
+    .msg-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .msg-action-btn { font-size: 12px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--accent); background: #eef2ff; color: var(--accent); cursor: pointer; }
+    .msg-action-btn:hover { background: #dbeafe; }
+
+    .typing-indicator { display: flex; gap: 6px; align-items: center; padding: 12px 16px; }
+    .typing-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text3); animation: bounce 1.2s infinite; }
+    .typing-dot:nth-child(2) { animation-delay: .2s; }
+    .typing-dot:nth-child(3) { animation-delay: .4s; }
+    @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+
+    .input-area { padding: 20px 24px 24px; border-top: 1px solid var(--border); flex-shrink: 0; }
+    .input-wrapper { display: flex; gap: 10px; align-items: flex-end; background: #ffffff; border: 1px solid var(--border); border-radius: 16px; padding: 12px 14px; }
+    .input-wrapper:focus-within { border-color: var(--accent); }
+    #chat-input { flex: 1; background: none; border: none; outline: none; color: var(--text); font-size: 14px; font-family: var(--font); resize: none; max-height: 120px; line-height: 1.5; min-height: 24px; }
+    #chat-input::placeholder { color: var(--text3); }
+    .send-btn { width: 38px; height: 38px; border-radius: 12px; background: var(--accent); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .send-btn:hover { opacity: .93; }
+    .send-btn:disabled { opacity: .35; cursor: not-allowed; }
+    .input-hint { font-size: 12px; color: var(--text3); margin-top: 10px; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.18); display: flex; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity .2s; }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal { background: #ffffff; border: 1px solid var(--border); border-radius: 18px; padding: 1.5rem; width: 100%; max-width: 460px; transform: translateY(12px); transition: transform .2s; }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 1rem; }
+    .modal label { font-size: 12px; font-weight: 600; color: var(--text3); display: block; margin-bottom: 8px; }
+    .modal input, .modal textarea, .modal select { width: 100%; background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; color: var(--text); font-size: 14px; font-family: var(--font); outline: none; transition: border-color .15s; margin-bottom: 16px; }
+    .modal input:focus, .modal textarea:focus, .modal select:focus { border-color: var(--accent); }
+    .modal textarea { resize: vertical; min-height: 100px; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 1rem; }
+    .btn-cancel { padding: 10px 16px; border-radius: 12px; border: 1px solid var(--border); background: #ffffff; color: var(--text3); cursor: pointer; }
+    .btn-submit { padding: 10px 18px; border-radius: 12px; background: var(--accent); border: none; color: #fff; font-weight: 600; cursor: pointer; }
+    .btn-submit:hover { opacity: .92; }
+
+    .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: #ffffff; border: 1px solid var(--border); border-radius: 14px; padding: 12px 16px; font-size: 13px; color: var(--text); transform: translateY(20px); opacity: 0; transition: all .3s; z-index: 200; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { border-color: var(--green); }
+    .toast.error { border-color: var(--red); }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/tenant/dashboard" class="nav-brand">
+    <span class="dot"></span> LeaseHub
+  </a>
+  <div class="nav-links">
+    <a href="/tenant/dashboard">Dashboard</a>
+    <a href="/tenant/payments">Payments</a>
+    <a href="/tenant/maintenance">Maintenance</a>
+    <a href="/tenant/support" class="active">Support</a>
+  </div>
+  <div class="nav-user">
+    <div class="nav-avatar" id="user-initial">T</div>
+    <span id="user-name">{{tenantName}}</span>
+    <a href="/tenant/logout" style="color:var(--text3);text-decoration:none;margin-left:8px;font-size:12px;">Sign out</a>
+  </div>
+</nav>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">Quick topics</div>
+      <div class="quick-actions">
+        <button class="chip" data-q="When is my next rent due?">💰 Rent due</button>
+        <button class="chip" data-q="What is my lease end date?">📋 Lease info</button>
+        <button class="chip" data-q="I need to report a maintenance issue">🔧 Maintenance</button>
+        <button class="chip" data-q="What is the status of my application?">📝 Application</button>
+        <button class="chip" data-q="My payment failed, what should I do?">❌ Payment issue</button>
+        <button class="chip" data-q="How do I request a lease renewal?">🔄 Renewal</button>
+        <button class="chip" data-q="What are the late payment penalties?">⚠️ Late fees</button>
+        <button class="chip" data-q="How do I update my contact details?">👤 My account</button>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Recent tickets</div>
+      <div id="ticket-list">
+        {{#if tickets}}
+          {{#each tickets}}
+          <div class="ticket-item" data-id="{{this._id}}">
+            <div class="ticket-subject">{{this.subject}}</div>
+            <div class="ticket-meta">
+              <span class="status-dot status-{{this.status}}"></span>
+              {{this.status}} · {{this.createdAt}}
+            </div>
+          </div>
+          {{/each}}
+        {{else}}
+          <div class="no-tickets">No tickets yet</div>
+        {{/if}}
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="btn-new-ticket" id="open-ticket-modal">+ Open a support ticket</button>
+    </div>
+  </aside>
+
+  <!-- CHAT -->
+  <div class="chat-area">
+    <div class="chat-header">
+      <div class="ai-avatar">🤖</div>
+      <div class="chat-header-info">
+        <div class="chat-header-name">LeaseHub AI Assistant</div>
+        <div class="chat-header-status">Online — responds instantly</div>
+      </div>
+      <div class="chat-header-actions">
+        <button class="btn-icon" id="clear-chat" title="Clear chat">🗑</button>
+      </div>
+    </div>
+
+    <div class="messages-container" id="messages">
+      <div class="welcome-state" id="welcome">
+        <div class="welcome-icon">🏠</div>
+        <div class="welcome-title">Hi{{#if tenantName}}, {{tenantName}}{{/if}}!</div>
+        <div class="welcome-sub">Ask me anything about your lease, payments, or property. I have access to your account details and will answer instantly.</div>
+        <div class="welcome-suggestions">
+          <button class="suggestion-pill" data-q="When is my next rent payment due?">When is my rent due?</button>
+          <button class="suggestion-pill" data-q="Show me my recent payment history">My payment history</button>
+          <button class="suggestion-pill" data-q="When does my lease end?">When does my lease end?</button>
+          <button class="suggestion-pill" data-q="How do I submit a maintenance request?">Submit maintenance request</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-area">
+      <div class="input-wrapper">
+        <textarea id="chat-input" placeholder="Ask anything about your lease, payments, or property…" rows="1"></textarea>
+        <button class="send-btn" id="send-btn" disabled>➤</button>
+      </div>
+      <div class="input-hint">AI has access to your account data · Sensitive actions require identity verification</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NEW TICKET MODAL -->
+<div class="modal-overlay" id="ticket-modal">
+  <div class="modal">
+    <div class="modal-title">Open a support ticket</div>
+    <label>Subject</label>
+    <input type="text" id="ticket-subject" placeholder="e.g. Broken heating unit in bedroom">
+    <label>Category</label>
+    <select id="ticket-category">
+      <option value="maintenance">Maintenance</option>
+      <option value="payment">Payment issue</option>
+      <option value="lease">Lease query</option>
+      <option value="noise">Noise complaint</option>
+      <option value="other">Other</option>
+    </select>
+    <label>Description</label>
+    <textarea id="ticket-desc" placeholder="Describe the issue in detail…"></textarea>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="close-modal">Cancel</button>
+      <button class="btn-submit" id="submit-ticket">Submit ticket</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script nonce="{{cspNonce}}">
+  const TENANT_ID = '{{tenantId}}';
+  const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+  const messagesEl = document.getElementById('messages');
+  const welcomeEl = document.getElementById('welcome');
+  const inputEl = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('send-btn');
+
+  // Set user initial
+  const name = (document.getElementById('user-name')?.textContent || 'T').trim();
+  document.getElementById('user-initial').textContent = name.charAt(0).toUpperCase();
+
+  let conversationHistory = [];
+  let isTyping = false;
+
+  // --- INPUT AUTO-RESIZE ---
+  inputEl.addEventListener('input', () => {
+    inputEl.style.height = 'auto';
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+    sendBtn.disabled = !inputEl.value.trim();
+  });
+
+  inputEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (!inputEl.value.trim() || isTyping) return;
+      sendMessage(inputEl.value.trim());
+    }
+  });
+
+  sendBtn.addEventListener('click', () => {
+    if (!inputEl.value.trim() || isTyping) return;
+    sendMessage(inputEl.value.trim());
+  });
+
+  // --- QUICK CHIPS ---
+  document.querySelectorAll('.chip, .suggestion-pill').forEach(el => {
+    el.addEventListener('click', () => {
+      const q = el.dataset.q;
+      if (q) sendMessage(q);
+    });
+  });
+
+  // --- CLEAR CHAT ---
+  document.getElementById('clear-chat').addEventListener('click', () => {
+    conversationHistory = [];
+    messagesEl.innerHTML = '';
+    messagesEl.appendChild(welcomeEl);
+    welcomeEl.style.display = 'flex';
+    showToast('Chat cleared');
+  });
+
+  function timeStr() {
+    return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function addMessage(role, content, extra) {
+    if (welcomeEl.parentElement) welcomeEl.style.display = 'none';
+
+    const wrap = document.createElement('div');
+    wrap.className = `msg ${role}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = 'msg-avatar';
+    avatar.textContent = role === 'ai' ? '🤖' : name.charAt(0).toUpperCase();
+
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    bubble.innerHTML = content.replace(/\n/g, '<br>');
+
+    // If ticket was created, add card
+    if (extra?.ticketCreated) {
+      const card = document.createElement('div');
+      card.className = 'ticket-created-card';
+      card.innerHTML = `<div class="tc-title">✓ Support ticket created</div><div class="tc-sub">Our team will respond shortly. You can track it in the sidebar.</div>`;
+      bubble.appendChild(card);
+    }
+
+    // Follow-up suggestions
+    if (extra?.suggestions?.length) {
+      const acts = document.createElement('div');
+      acts.className = 'msg-actions';
+      extra.suggestions.forEach(s => {
+        const btn = document.createElement('button');
+        btn.className = 'msg-action-btn';
+        btn.textContent = s;
+        btn.addEventListener('click', () => sendMessage(s));
+        acts.appendChild(btn);
+      });
+      bubble.appendChild(acts);
+    }
+
+    const time = document.createElement('div');
+    time.className = 'msg-time';
+    time.textContent = timeStr();
+
+    wrap.appendChild(avatar);
+    const inner = document.createElement('div');
+    inner.appendChild(bubble);
+    inner.appendChild(time);
+    wrap.appendChild(inner);
+
+    messagesEl.appendChild(wrap);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return wrap;
+  }
+
+  function showTyping() {
+    const wrap = document.createElement('div');
+    wrap.className = 'msg ai';
+    wrap.id = 'typing-indicator';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'msg-avatar';
+    avatar.textContent = '🤖';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    bubble.innerHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+
+    wrap.appendChild(avatar);
+    wrap.appendChild(bubble);
+    messagesEl.appendChild(wrap);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return wrap;
+  }
+
+  function removeTyping() {
+    document.getElementById('typing-indicator')?.remove();
+  }
+
+  async function sendMessage(text) {
+    if (isTyping) return;
+    isTyping = true;
+    sendBtn.disabled = true;
+
+    addMessage('user', text);
+    conversationHistory.push({ role: 'user', content: text });
+    inputEl.value = '';
+    inputEl.style.height = 'auto';
+
+    const typingEl = showTyping();
+
+    try {
+      const res = await fetch('/tenant/support/ask', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-Token': CSRF_TOKEN
+        },
+        body: JSON.stringify({ question: text, _csrf: CSRF_TOKEN })
+      });
+
+      removeTyping();
+
+      if (!res.ok) throw new Error('Request failed');
+
+      const data = await res.json();
+      const parsed = data.parsed || data.result?.parsed || {};
+      const action = parsed.action || 'answer';
+
+      if (action === 'answer') {
+        const answer = parsed.answer || data.raw || data.result?.raw || 'I couldn\'t find a specific answer. Would you like to open a support ticket?';
+        const suggestions = parsed.suggestions || getFollowUps(text);
+        addMessage('ai', answer, { suggestions });
+        conversationHistory.push({ role: 'assistant', content: answer });
+
+      } else if (action === 'create_ticket') {
+        // AI decided this needs a ticket
+        const msg = `I've created a support ticket for you regarding: **${parsed.title || text}**. Our team will review it and respond within 24 hours.`;
+        addMessage('ai', msg, { ticketCreated: true });
+        // Auto-submit the ticket
+        await submitTicketSilently(parsed.title || text, parsed.description || text);
+        refreshTicketList();
+
+      } else {
+        addMessage('ai', parsed.answer || 'Let me know if you need anything else.', {});
+      }
+
+    } catch (err) {
+      removeTyping();
+      addMessage('ai', 'I\'m having trouble connecting right now. Please try again in a moment, or open a support ticket if your issue is urgent.', {
+        suggestions: ['Try again', 'Open a ticket']
+      });
+    }
+
+    isTyping = false;
+    sendBtn.disabled = !inputEl.value.trim();
+  }
+
+  function getFollowUps(question) {
+    const q = question.toLowerCase();
+    if (q.includes('rent') || q.includes('payment')) return ['Show payment history', 'How to pay rent online?', 'What are late payment fees?'];
+    if (q.includes('lease') || q.includes('contract')) return ['When does my lease end?', 'How to renew my lease?'];
+    if (q.includes('maintenance') || q.includes('repair')) return ['Submit a maintenance request', 'Track my maintenance ticket'];
+    return ['Ask another question', 'Open a support ticket'];
+  }
+
+  // --- TICKET MODAL ---
+  document.getElementById('open-ticket-modal').addEventListener('click', () => {
+    document.getElementById('ticket-modal').classList.add('open');
+  });
+  document.getElementById('close-modal').addEventListener('click', () => {
+    document.getElementById('ticket-modal').classList.remove('open');
+  });
+  document.getElementById('ticket-modal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
+  });
+
+  document.getElementById('submit-ticket').addEventListener('click', async () => {
+    const subject = document.getElementById('ticket-subject').value.trim();
+    const category = document.getElementById('ticket-category').value;
+    const desc = document.getElementById('ticket-desc').value.trim();
+    if (!subject || !desc) { showToast('Please fill in subject and description', 'error'); return; }
+
+    try {
+      const res = await fetch('/tenant/support/tickets', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-Token': CSRF_TOKEN
+        },
+        body: JSON.stringify({ subject, category, message: desc, _csrf: CSRF_TOKEN })
+      });
+      if (res.ok) {
+        showToast('Ticket submitted successfully!', 'success');
+        document.getElementById('ticket-modal').classList.remove('open');
+        document.getElementById('ticket-subject').value = '';
+        document.getElementById('ticket-desc').value = '';
+        refreshTicketList();
+      } else {
+        showToast('Failed to submit ticket. Please try again.', 'error');
+      }
+    } catch(e) {
+      showToast('Network error. Please try again.', 'error');
+    }
+  });
+
+  async function submitTicketSilently(subject, description) {
+    try {
+      await fetch('/tenant/support/tickets', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-Token': CSRF_TOKEN
+        },
+        body: JSON.stringify({ subject, category: 'other', message: description, _csrf: CSRF_TOKEN })
+      });
+    } catch(e) {}
+  }
+
+  async function refreshTicketList() {
+    try {
+      const res = await fetch('/tenant/support/tickets', { headers: { 'Accept': 'application/json' } });
+      if (!res.ok) return;
+      const data = await res.json();
+      const list = document.getElementById('ticket-list');
+      if (!data.tickets?.length) { list.innerHTML = '<div class="no-tickets">No tickets yet</div>'; return; }
+      list.innerHTML = data.tickets.map(t => `
+        <div class="ticket-item" data-id="${t._id}">
+          <div class="ticket-subject">${t.subject || 'Support ticket'}</div>
+          <div class="ticket-meta">
+            <span class="status-dot status-${t.status}"></span>
+            ${t.status} · ${new Date(t.createdAt).toLocaleDateString()}
+          </div>
+        </div>
+      `).join('');
+    } catch(e) {}
+  }
+
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.className = 'toast', 3000);
+  }
+</script>
+</body>
+</html>

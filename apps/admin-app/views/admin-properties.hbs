@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{csrfToken}}">
+    <title>Properties - LeaseHub Admin</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background: #f5f7fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem 2rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .navbar-brand { color: white !important; font-weight: 700; font-size: 1.5rem; }
+        .nav-link { color: rgba(255, 255, 255, 0.9) !important; margin: 0 10px; }
+        .nav-link:hover { color: white !important; }
+        .main-content { padding: 30px; max-width: 1400px; margin: 0 auto; }
+        .page-header { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); margin-bottom: 30px; }
+        .content-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); }
+        .table th { background: #f8f9fa; color: #2c3e50; font-weight: 600; }
+        .badge-available { background: #4caf50; color: white; padding: 6px 12px; border-radius: 20px; }
+        .badge-reserved { background: #ff9800; color: white; padding: 6px 12px; border-radius: 20px; }
+        .badge-occupied { background: #3f51b5; color: white; padding: 6px 12px; border-radius: 20px; }
+        .badge-maintenance { background: #f44336; color: white; padding: 6px 12px; border-radius: 20px; }
+    </style>
+    </head>
+    <body>
+        {{> admin_header}}
+
+    <div class="main-content">
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-home"></i> Properties Management</h2>
+                    <p>Manage all properties in the system</p>
+                </div>
+                <div>
+                    <a href="/admin/properties/add" class="btn btn-success btn-lg">
+                        <i class="fas fa-plus-circle"></i> Add New Property
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {{#if success}}
+        <div class="alert alert-success" role="alert">
+            {{success}}
+        </div>
+        {{/if}}
+        {{#if error}}
+        <div class="alert alert-danger" role="alert">
+            {{error}}
+        </div>
+        {{/if}}
+
+        <div class="content-card">
+            {{#if properties.length}}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Property Name</th>
+                            <th>Address</th>
+                            <th>Rent</th>
+                            <th>Booking Deposit</th>
+                            <th>Bedrooms</th>
+                            <th>Tenant</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#each properties}}
+                        <tr>
+                            <td><strong>{{this.propertyname}}</strong></td>
+                            <td>{{this.propertyaddress}}</td>
+                            <td>{{currencySymbol}}{{this.rent}}/month</td>
+                            <td>{{currencySymbol}}{{this.bookingDeposit}}</td>
+                            <td>{{this.bedrooms}} BHK</td>
+                            <td>
+                                {{#if this.tenantId}}
+                                    {{this.tenantId.firstname}} {{this.tenantId.lastname}}
+                                {{else}}
+                                    <em>Not assigned</em>
+                                {{/if}}
+                            </td>
+                            <td>
+                                {{#if (eq this.status 'available')}}
+                                    <span class="badge-available">Available</span>
+                                {{else if (eq this.status 'reserved')}}
+                                    <span class="badge-reserved">Reserved</span>
+                                {{else if (eq this.status 'occupied')}}
+                                    <span class="badge-occupied">Occupied</span>
+                                {{else}}
+                                    <span class="badge-maintenance">{{this.status}}</span>
+                                {{/if}}
+                            </td>
+                            <td>
+                                <a href="/admin/properties/{{this._id}}" class="btn btn-sm btn-primary">View</a>
+                                <a href="/admin/properties/{{this._id}}/edit" class="btn btn-sm btn-warning">Edit</a>
+                            </td>
+                        </tr>
+                        {{/each}}
+                    </tbody>
+                </table>
+            </div>
+            {{else}}
+            <div class="text-center py-5">
+                <i class="fas fa-home" style="font-size: 60px; color: #ccc;"></i>
+                <h5 style="margin-top: 20px; color: #7f8c8d;">No Properties Found</h5>
+                <p style="color: #999;">No properties have been added yet</p>
+            </div>
+            {{/if}}
+        </div>
+    </div>
+</body>
+</html>

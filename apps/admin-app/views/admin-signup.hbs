@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Signup - LeaseHub</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{csrfToken}}">
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+<style>
+* {
+  box-sizing: border-box;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+}
+
+.container-box {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(18px);
+  border-radius: 26px;
+  padding: 60px 60px 50px;
+  text-align: center;
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.45);
+  max-width: 500px;
+  width: 90%;
+}
+
+h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  margin-bottom: 40px;
+  opacity: 0.9;
+}
+
+.form-group {
+  margin-bottom: 25px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.form-control {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.85);
+  color: #1a1a1a;
+  font-size: 1rem;
+  transition: 0.3s;
+}
+
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper .form-control {
+  padding-right: 60px;
+}
+
+.toggle-btn {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #7a0d6c;
+  font-weight: 600;
+  user-select: none;
+  padding: 5px 8px;
+  font-size: 0.9rem;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.btn-login {
+  width: 100%;
+  padding: 16px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid white;
+  cursor: pointer;
+  transition: 0.3s;
+  margin-top: 20px;
+}
+
+.btn-login:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.4);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.alert {
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+}
+
+.alert-danger {
+  background: rgba(255, 0, 0, 0.2);
+  border: 2px solid rgba(255, 0, 0, 0.5);
+  color: #ffcccc;
+}
+
+.alert-success {
+  background: rgba(0, 255, 0, 0.2);
+  border: 2px solid rgba(0, 255, 0, 0.5);
+  color: #ccffcc;
+}
+
+.link-text {
+  margin-top: 20px;
+  display: block;
+  color: white;
+  text-decoration: underline;
+}
+
+/* Password rules checklist */
+.pwd-rules {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: 10px;
+  font-size: 0.85rem;
+  list-style: none;
+  padding-left: 14px;
+  text-align: left;
+}
+.pwd-rules li {
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: color 0.2s;
+}
+.pwd-rules li.ok {
+  color: #6effa4;
+}
+.pwd-rules li .chk { font-size: 0.9rem; }
+
+/* Confirm password match indicator */
+.pwd-match-msg {
+  font-size: 0.83rem;
+  margin-top: 5px;
+  min-height: 18px;
+}
+.pwd-match-msg.ok  { color: #6effa4; }
+.pwd-match-msg.err { color: #ff9a9a; }
+
+@media (max-width: 600px) {
+  .container-box {
+    width: 90%;
+    padding: 40px 30px;
+  }
+  
+  h1 {
+    font-size: 2.2rem;
+  }
+}
+</style>
+</head>
+<body>
+  <div class="container-box">
+    <h1>🏢 LeaseHub</h1>
+    <p class="subtitle">Admin Registration</p>
+
+    {{#if error}}
+    <div class="alert alert-danger">
+      {{error}}
+    </div>
+    {{/if}}
+
+    {{#if success}}
+    <div class="alert alert-success">
+      {{success}}
+    </div>
+    {{/if}}
+
+    <form method="POST" action="/admin/signup">
+      <input type="hidden" name="_csrf" value="{{csrfToken}}">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input 
+          type="text" 
+          class="form-control" 
+          id="username" 
+          name="username" 
+          placeholder="Enter a username"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input 
+          type="email" 
+          class="form-control" 
+          id="email" 
+          name="email" 
+          placeholder="Enter your email"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="password">Create Password</label>
+        <div class="password-wrapper">
+          <input 
+            type="password" 
+            id="password" 
+            class="form-control" 
+            name="password" 
+            placeholder="Create a strong password"
+            required
+            autocomplete="new-password"
+          >
+          <span id="togglePwd" class="toggle-btn">Show</span>
+        </div>
+        <!-- Real-time rule checklist -->
+        <ul class="pwd-rules" id="pwdRules">
+          <li id="rule-len"><span class="chk">○</span> At least 8 characters</li>
+          <li id="rule-upper"><span class="chk">○</span> One uppercase letter</li>
+          <li id="rule-lower"><span class="chk">○</span> One lowercase letter</li>
+          <li id="rule-num"><span class="chk">○</span> One number</li>
+          <li id="rule-special"><span class="chk">○</span> One special character</li>
+        </ul>
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <div class="password-wrapper">
+          <input
+            type="password"
+            id="confirmPassword"
+            class="form-control"
+            name="confirmPassword"
+            placeholder="Re-enter your password"
+            required
+            autocomplete="new-password"
+          >
+          <span id="toggleConfirmPwd" class="toggle-btn">Show</span>
+        </div>
+        <div class="pwd-match-msg" id="matchMsg"></div>
+      </div>
+
+      <button type="submit" class="btn-login">Sign Up</button>
+      
+      <a href="/admin/login/form" class="link-text">Already have an account? Login here</a>
+    </form>
+  </div>
+
+  <script nonce="{{cspNonce}}">
+    document.addEventListener('DOMContentLoaded', function () {
+      // ---------- helpers ----------
+      function makeToggle(btnId, inputId) {
+        const btn = document.getElementById(btnId);
+        const inp = document.getElementById(inputId);
+        if (btn && inp) {
+          btn.addEventListener('click', function () {
+            if (inp.type === 'password') { inp.type = 'text';     btn.innerText = 'Hide'; }
+            else                         { inp.type = 'password'; btn.innerText = 'Show'; }
+          });
+        }
+      }
+      makeToggle('togglePwd', 'password');
+      makeToggle('toggleConfirmPwd', 'confirmPassword');
+
+      // ---------- rule checklist ----------
+      const RULES = [
+        { id: 'rule-len',     test: p => p.length >= 8 },
+        { id: 'rule-upper',   test: p => /[A-Z]/.test(p) },
+        { id: 'rule-lower',   test: p => /[a-z]/.test(p) },
+        { id: 'rule-num',     test: p => /[0-9]/.test(p) },
+        { id: 'rule-special', test: p => /[^A-Za-z0-9]/.test(p) }
+      ];
+
+      function updateRules(pwd) {
+        return RULES.every(function (r) {
+          const li  = document.getElementById(r.id);
+          const chk = li.querySelector('.chk');
+          const ok  = r.test(pwd);
+          li.classList.toggle('ok', ok);
+          chk.textContent = ok ? '✔' : '○';
+          return ok;
+        });
+      }
+
+      // ---------- match indicator ----------
+      function updateMatch() {
+        const pwd  = document.getElementById('password').value;
+        const conf = document.getElementById('confirmPassword').value;
+        const msg  = document.getElementById('matchMsg');
+        if (!conf.length) { msg.textContent = ''; msg.className = 'pwd-match-msg'; return; }
+        if (pwd === conf) { msg.textContent = '✔ Passwords match';        msg.className = 'pwd-match-msg ok'; }
+        else              { msg.textContent = '✖ Passwords do not match'; msg.className = 'pwd-match-msg err'; }
+      }
+
+      document.getElementById('password').addEventListener('input', function () {
+        updateRules(this.value);
+        updateMatch();
+      });
+      document.getElementById('confirmPassword').addEventListener('input', updateMatch);
+
+      // ---------- block submit ----------
+      document.querySelector('form').addEventListener('submit', function (e) {
+        const pwd  = document.getElementById('password').value;
+        const conf = document.getElementById('confirmPassword').value;
+        const allOk = updateRules(pwd);
+        if (!allOk) {
+          e.preventDefault();
+          alert('Password does not meet all the required rules.');
+          return;
+        }
+        if (pwd !== conf) {
+          e.preventDefault();
+          document.getElementById('matchMsg').textContent = '✖ Passwords do not match';
+          document.getElementById('matchMsg').className   = 'pwd-match-msg err';
+          document.getElementById('confirmPassword').focus();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

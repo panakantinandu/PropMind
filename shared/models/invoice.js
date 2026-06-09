@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const invoiceSchema = new mongoose.Schema({
+    adminId: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
     // Type of invoice: regular rent vs booking deposit, late fee, etc.
     // 'monthly_rent' is for system-generated rent, 'booking_deposit' for reservation,
     // and 'late_fee' for standalone late fee entries linked to rent.

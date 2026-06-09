@@ -11,8 +11,12 @@ module.exports = {
     Ticket: require('./ticket'),
     Area: require('./area'),
     Loan: require('./loan'),
+    Lease: require('./lease'),
     Testimonial: require('./testimonial'),
     AuditLog: require('./auditLog'),
     LedgerEntry: require('./ledgerEntry'),
     Notification: require('./notification'),
+    SupportTicket: require('./supportTicket'),
+    StripeAccount: require('./stripeAccount'),
+    AIInsight: require('./aiInsight'),
 };

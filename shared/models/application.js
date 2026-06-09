@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const applicationSchema = new mongoose.Schema({
+    adminId: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
     // Application Details
     applicantName: { type: String, required: true },
     applicantEmail: { type: String, required: true },
@@ -16,7 +17,7 @@ const applicationSchema = new mongoose.Schema({
     status: { 
         type: String, 
         default: 'pending', 
-        enum: ['pending', 'approved', 'reserved', 'cancelled', 'expired', 'rejected', 'withdrawn'] 
+        enum: ['pending', 'approved', 'deposit_pending', 'reserved', 'cancelled', 'expired', 'rejected', 'withdrawn'] 
     },
     propertyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Property', required: true },
     tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant' }, // Set after approval
@@ -31,8 +32,59 @@ const applicationSchema = new mongoose.Schema({
     // Booking deposit expiry (set when application is approved)
     expiresAt: { type: Date },
     
+    // Lease terms acceptance
+    termsAccepted: { type: Boolean, default: false },
+    termsAcceptedAt: { type: Date },
+    termsAcceptedVersion: { type: String, default: 'lease-terms-v1' },
+
     // Metadata
     isDeleted: { type: Boolean, default: false },
+
+    // Ai features
+
+    aiRiskLevel: {
+        type: String
+    },
+
+    aiConfidenceScore: {
+        type: Number
+    },
+
+    aiRecommendation: {
+        type: String
+    },
+
+    aiExplanation: {
+        type: String
+    },
+
+    aiRiskFactors: {
+        type: [String],
+        default: []
+    },
+
+    aiStrengths: {
+        type: [String],
+        default: []
+    },
+
+    aiWeaknesses: {
+        type: [String],
+        default: []
+    },
+
+    aiDecisionReason: {
+        type: String
+    },
+
+    aiGeneratedAt: {
+        type: Date
+    },
+
+    aiScoredBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Admin'
+    }
 }, { timestamps: true });
 
 // Virtual alias so business logic can use `preferredMoveInDate`

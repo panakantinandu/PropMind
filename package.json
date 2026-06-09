@@ -16,7 +16,9 @@
     "prod:start": "NODE_ENV=production node -e \"require('dotenv').config(); require('concurrently')(['npm run start:tenant', 'npm run start:admin']).then(success => process.exit(success ? 0 : 1))\"",
     "check:env": "node -e \"const env = require('./.env'); console.log('Environment Check:'); ['NODE_ENV', 'STRIPE_SECRET_KEY', 'SESSION_SECRET', 'MONGO_URI', 'TENANT_URL', 'ADMIN_URL'].forEach(k => console.log(`  ${k}: ${process.env[k] ? 'SET' : 'MISSING'}`))\"",
     "generate:secret": "node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --testPathPattern='tests/'",
+    "test:billing": "jest tests/billing.test.js",
+    "test:ai": "jest tests/ai.test.js"
   },
   "keywords": [
     "property",
@@ -31,9 +33,11 @@
     "@sendgrid/mail": "^7.7.0",
     "bcryptjs": "^3.0.3",
     "body-parser": "^1.20.2",
+    "bullmq": "^5.77.3",
     "connect-redis": "^9.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "csrf-csrf": "^3.2.2",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "express-async-errors": "^3.1.1",
@@ -42,11 +46,14 @@
     "express-rate-limit": "^6.7.0",
     "express-session": "^1.17.3",
     "helmet": "^7.0.0",
+    "ioredis": "^5.10.1",
     "joi": "^18.0.2",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.0.0",
     "morgan": "^1.10.0",
+    "node-cron": "^4.2.1",
     "nodemailer": "^6.9.1",
+    "openai": "^6.39.1",
     "pdf-lib": "^1.17.1",
     "pdfkit": "^0.13.0",
     "redis": "^5.10.0",
@@ -60,7 +67,7 @@
     "nodemon": "^2.0.22"
   },
   "engines": {
-    "node": ">=14.0.0",
+    "node": ">=18.0.0",
     "npm": ">=6.0.0"
   }
 }

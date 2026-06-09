@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Available Properties - LeaseHub</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background: #f5f7fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem 2rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .navbar-brand { color: white !important; font-weight: 700; font-size: 1.5rem; }
+        .nav-link { color: rgba(255, 255, 255, 0.9) !important; margin: 0 10px; transition: all 0.3s; }
+        .nav-link:hover { color: white !important; }
+        .main-content { padding: 30px; max-width: 1400px; margin: 0 auto; }
+        .page-header { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); margin-bottom: 30px; }
+        
+        .property-card { background: white; border-radius: 15px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); margin-bottom: 30px; overflow: hidden; transition: all 0.3s; }
+        .property-card:hover { transform: translateY(-5px); box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15); }
+        .property-image { height: 250px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 4rem; }
+        .property-body { padding: 25px; }
+        .property-title { font-size: 1.5rem; font-weight: 700; color: #2c3e50; margin-bottom: 10px; }
+        .property-address { color: #7f8c8d; margin-bottom: 15px; }
+        .property-details { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
+        .detail-item { display: flex; align-items: center; color: #555; }
+        .detail-item i { color: #667eea; margin-right: 8px; width: 20px; }
+        .property-amenities { margin-bottom: 20px; }
+        .amenity-tag { background: #e8f5e9; color: #2e7d32; padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; margin-right: 8px; margin-bottom: 8px; display: inline-block; }
+        .property-price { font-size: 2rem; font-weight: 700; color: #667eea; margin-bottom: 15px; }
+        .property-price small { font-size: 1rem; color: #999; }
+        .badge-available { background: #4caf50; color: white; padding: 8px 15px; border-radius: 20px; font-size: 0.9rem; }
+        .btn-apply { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 12px 30px; font-weight: 600; color: white; }
+        .btn-apply:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
+        .filter-section { background: white; padding: 20px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); }
+        .empty-state { text-align: center; padding: 60px 20px; }
+        .empty-state i { font-size: 80px; color: #ddd; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <a class="navbar-brand" href="/tenant/dashboard">🏠 LeaseHub</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item"><a class="nav-link" href="/tenant/dashboard">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link active" href="/tenant/properties">Available Properties</a></li>
+                <li class="nav-item"><a class="nav-link" href="/tenant/applications">My Applications</a></li>
+                <li class="nav-item"><a class="nav-link" href="/tenant/payments">Payments</a></li>
+                <li class="nav-item"><a class="nav-link" href="/tenant/maintenance">Maintenance</a></li>
+                <li class="nav-item"><a class="nav-link" href="/tenant/logout">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h2><i class="fas fa-search-location"></i> Available Properties</h2>
+            <p>Browse and apply for properties that match your needs</p>
+            {{#if tenant}}
+            <div style="margin-top: 20px; padding: 18px; background: #eef6ff; border-radius: 14px; border: 1px solid #d6e8ff;">
+                <strong>Your profile</strong> • {{tenant.firstname}} {{tenant.lastname}} | {{tenant.email}} | {{tenant.phone}}
+                {{#if tenant.currentAddress}}• {{tenant.currentAddress}}{{/if}}
+            </div>
+            {{/if}}
+            <small class="text-muted" style="font-size: 0.8rem; display: block; margin-top: 10px;">
+                Status: Pending Count = {{pendingCount}}, Has Approved = {{hasApprovedApplication}}, Max Allowed = {{maxPendingAllowed}}
+            </small>
+        </div>
+
+        {{#if hasApprovedApplication}}
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle"></i> <strong>Property Assigned!</strong> Your application has been approved and you have been assigned a property. You cannot apply to additional properties as you're already a confirmed tenant.
+            <a href="/tenant/applications" class="alert-link font-weight-bold">View your approved application</a>
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+        {{else if (eq pendingCount maxPendingAllowed)}}
+        <div class="alert alert-warning alert-dismissible fade show">
+            <i class="fas fa-hourglass-half"></i> <strong>Application Limit Reached!</strong> You have <strong>{{pendingCount}} applications</strong> currently under review by the admin (Status: <span class="badge badge-warning">Pending</span>). Please wait for admin decisions on your existing applications before applying to new properties. Applications marked as "Rejected" or "Cancelled" don't count toward this limit.
+            <a href="/tenant/applications" class="alert-link font-weight-bold">Check application status</a>
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+        {{else if (eq pendingCount 1)}}
+        <div class="alert alert-info alert-dismissible fade show">
+            <i class="fas fa-info-circle"></i> You have <strong>1 application</strong> with status <span class="badge badge-warning">Pending</span> being reviewed by admin. You can still apply to <strong>{{subtract maxPendingAllowed pendingCount}} more</strong> properties (maximum {{maxPendingAllowed}} pending applications allowed).
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+        {{else if (eq pendingCount 2)}}
+        <div class="alert alert-info alert-dismissible fade show">
+            <i class="fas fa-info-circle"></i> You have <strong>2 applications</strong> with status <span class="badge badge-warning">Pending</span> being reviewed by admin. You can apply to <strong>1 more property</strong> (maximum {{maxPendingAllowed}} pending applications allowed).
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+        {{/if}}
+
+        {{#if error}}
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="fas fa-exclamation-circle"></i> {{error}}
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+        {{/if}}
+
+        <!-- Filters -->
+        <div class="filter-section">
+            <form method="GET" action="/tenant/properties">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>City</label>
+                            <input type="text" class="form-control" name="city" placeholder="Any city" value="{{filters.city}}">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Property Type</label>
+                            <select class="form-control" name="type">
+                                <option value="">All Types</option>
+                                <option value="apartment" {{#if (eq filters.type 'apartment')}}selected{{/if}}>Apartment</option>
+                                <option value="villa" {{#if (eq filters.type 'villa')}}selected{{/if}}>Villa</option>
+                                <option value="house" {{#if (eq filters.type 'house')}}selected{{/if}}>House</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Bedrooms</label>
+                            <select class="form-control" name="bedrooms">
+                                <option value="">Any</option>
+                                <option value="1" {{#if (eq filters.bedrooms '1')}}selected{{/if}}>1 BHK</option>
+                                <option value="2" {{#if (eq filters.bedrooms '2')}}selected{{/if}}>2 BHK</option>
+                                <option value="3" {{#if (eq filters.bedrooms '3')}}selected{{/if}}>3 BHK</option>
+                                <option value="4" {{#if (eq filters.bedrooms '4')}}selected{{/if}}>4+ BHK</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Max Rent</label>
+                            <input type="number" class="form-control" name="maxRent" placeholder="Any" value="{{filters.maxRent}}">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button type="submit" class="btn btn-primary btn-block">
+                                <i class="fas fa-filter"></i> Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Properties Grid -->
+        {{#if properties.length}}
+        <div class="row">
+            {{#each properties}}
+            <div class="col-md-6">
+                <div class="property-card">
+                    <div class="property-image">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <div class="property-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="property-title">{{this.propertyname}}</div>
+                            <span class="badge-available">Available</span>
+                        </div>
+                        
+                        <div class="property-address">
+                            <i class="fas fa-map-marker-alt"></i> {{this.propertyaddress}}, {{this.city}}, {{this.state}} - {{this.pincode}}
+                        </div>
+
+                        <div style="margin-top: 16px; padding: 18px; background: #f4f8ff; border-radius: 12px; border: 1px solid #d7e5ff;">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                <span style="width: 40px; height: 40px; line-height: 40px; border-radius: 50%; background: #667eea; color: white; text-align: center; font-weight: 700; font-size: 1rem;">
+                                    {{#if this.adminId.username}}{{this.adminId.username.[0]}}{{else}}L{{/if}}
+                                </span>
+                                <div>
+                                    <div style="font-weight: 700; color: #2c3e50;">Listed by {{#if this.adminId.username}}{{this.adminId.username}}{{else}}LeaseHub Team{{/if}}</div>
+                                    <div style="font-size: 0.85rem; color: #556174;">{{#if this.adminId.email}}{{this.adminId.email}}{{else}}support@leasehub.example.com{{/if}}</div>
+                                </div>
+                            </div>
+                            {{#if this.adminId.email}}
+                            <a href="mailto:{{this.adminId.email}}" class="btn btn-outline-primary btn-sm" style="padding: 8px 16px; font-size: 0.85rem;">
+                                <i class="fas fa-envelope"></i> Contact Owner
+                            </a>
+                            {{/if}}
+                        </div>
+
+                        <div class="property-details">
+                            <div class="detail-item">
+                                <i class="fas fa-bed"></i>
+                                <span>{{this.bedrooms}} Bedrooms</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-bath"></i>
+                                <span>{{this.bathrooms}} Bathrooms</span>
+                            </div>
+                            {{#if this.squareFeet}}
+                            <div class="detail-item">
+                                <i class="fas fa-ruler-combined"></i>
+                                <span>{{this.squareFeet}} sq.ft</span>
+                            </div>
+                            {{/if}}
+                            <div class="detail-item">
+                                <i class="fas fa-couch"></i>
+                                <span>{{this.furnishing}}</span>
+                            </div>
+                        </div>
+
+                        {{#if this.amenities}}
+                        <div class="property-amenities">
+                            {{#each this.amenities}}
+                                <span class="amenity-tag">{{this}}</span>
+                            {{/each}}
+                        </div>
+                        {{/if}}
+
+                        <div class="property-price">
+                            {{currencySymbol}}{{this.rent}}<small>/month</small>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted d-block">Security Deposit: {{currencySymbol}}{{this.deposit}}</small>
+                                <small class="text-muted d-block">Booking Deposit: {{currencySymbol}}{{this.bookingDeposit}}</small>
+                                {{#if this.adminId}}
+                                <small class="text-muted d-block">Listed by: {{this.adminId.username}} ({{this.adminId.email}})</small>
+                                {{else}}
+                                <small class="text-muted d-block">Listed by: LeaseHub Team</small>
+                                {{/if}}
+                            </div>
+                            {{#if ../hasApprovedApplication}}
+                            <button class="btn btn-secondary" disabled title="You already have an approved application and are assigned to a property">
+                                <i class="fas fa-check"></i> Property Assigned
+                            </button>
+                            {{else if (eq ../pendingCount ../maxPendingAllowed)}}
+                            <button class="btn btn-secondary" disabled title="You have 3 pending applications under review. Wait for admin decision or withdraw an application.">
+                                <i class="fas fa-hourglass-half"></i> Applications Processing
+                            </button>
+                            {{else}}
+                            <a href="/tenant/properties/apply/{{this._id}}" class="btn btn-apply">
+                                <i class="fas fa-file-contract"></i> Apply Now
+                            </a>
+                            {{/if}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{/each}}
+        </div>
+        {{else}}
+        <div class="empty-state">
+            <i class="fas fa-home"></i>
+            <h4>No Properties Available</h4>
+            <p class="text-muted">There are no properties matching your criteria at the moment.</p>
+            <a href="/tenant/properties" class="btn btn-primary mt-3">
+                <i class="fas fa-redo"></i> Clear Filters
+            </a>
+        </div>
+        {{/if}}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>

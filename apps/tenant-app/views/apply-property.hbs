@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply for Property - LeaseHub</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background: #f5f7fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem 2rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .navbar-brand { color: white !important; font-weight: 700; font-size: 1.5rem; }
+        .nav-link { color: rgba(255, 255, 255, 0.9) !important; margin: 0 10px; }
+        .main-content { padding: 30px; max-width: 1000px; margin: 0 auto; }
+        .property-summary { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); margin-bottom: 30px; }
+        .property-summary h3 { color: #667eea; margin-bottom: 20px; }
+        .form-card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); }
+        .form-section { margin-bottom: 30px; padding-bottom: 30px; border-bottom: 2px solid #f0f0f0; }
+        .form-section:last-child { border-bottom: none; }
+        .form-section h5 { color: #667eea; margin-bottom: 20px; font-weight: 600; }
+        .btn-submit { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 12px 40px; font-weight: 600; }
+        .alert { border-radius: 10px; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .info-row strong { color: #2c3e50; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <a class="navbar-brand" href="/tenant/dashboard">🏠 LeaseHub</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item"><a class="nav-link" href="/tenant/dashboard">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="/tenant/properties">Available Properties</a></li>
+                <li class="nav-item"><a class="nav-link" href="/tenant/applications">My Applications</a></li>
+                <li class="nav-item"><a class="nav-link" href="/tenant/logout">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="property-summary">
+            <h3><i class="fas fa-home"></i> Property Details</h3>
+            <div class="info-row">
+                <span>Property Name:</span>
+                <strong>{{property.propertyname}}</strong>
+            </div>
+            <div class="info-row">
+                <span>Address:</span>
+                <strong>{{property.propertyaddress}}, {{property.city}}</strong>
+            </div>
+            <div class="info-row">
+                <span>Type:</span>
+                <strong>{{property.bedrooms}} BHK {{property.propertytype}}</strong>
+            </div>
+            <div class="info-row">
+                <span>Monthly Rent:</span>
+                <strong class="text-success">{{currencySymbol}}{{property.rent}}</strong>
+            </div>
+            <div class="info-row">
+                <span>Security Deposit:</span>
+                <strong>{{currencySymbol}}{{property.deposit}}</strong>
+            </div>
+        </div>
+
+        <div class="form-card">
+            <h2 class="mb-4"><i class="fas fa-file-signature"></i> Application Form</h2>
+            
+            {{#if error}}
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i> {{error}}
+            </div>
+            {{/if}}
+
+            <form action="/tenant/properties/apply/{{property._id}}" method="POST">
+                <input type="hidden" name="_csrf" value="{{csrfToken}}">
+                <div class="form-section">
+                    <h5><i class="fas fa-user"></i> Personal Information</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Full Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="applicantName" required 
+                                       value="{{tenant.firstname}} {{tenant.lastname}}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Email <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" name="applicantEmail" required 
+                                       value="{{tenant.email}}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone <span class="text-danger">*</span></label>
+                        <input type="tel" class="form-control" name="phone" required 
+                               value="{{tenant.phone}}" pattern="[0-9]{10}" placeholder="10-digit phone number">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h5><i class="fas fa-briefcase"></i> Employment Details</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Occupation <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="occupation" required 
+                                       placeholder="e.g. Software Engineer, Doctor, Business">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Monthly Income ($) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" name="monthlyIncome" required min="0" step="1000"
+                                       placeholder="Your monthly income">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h5><i class="fas fa-calendar-alt"></i> Lease Preferences</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Preferred Move-in Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" name="preferredMoveIn" required
+                                       min="{{todayDate}}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Lease Duration (months) <span class="text-danger">*</span></label>
+                                <select class="form-control" name="leaseDuration" required>
+                                    <option value="">Select Duration</option>
+                                    <option value="6">6 Months</option>
+                                    <option value="11">11 Months</option>
+                                    <option value="12">12 Months (Recommended)</option>
+                                    <option value="24">24 Months</option>
+                                    <option value="36">36 Months</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Number of Occupants <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="occupants" required min="1" max="10" value="1">
+                        <small class="form-text text-muted">Total number of people who will live in the property</small>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h5><i class="fas fa-file-contract"></i> Lease Terms & Conditions</h5>
+                    <div class="alert alert-light border">
+                        <ul class="mb-0 pl-3">
+                            <li>You confirm that all information provided is accurate and complete.</li>
+                            <li>Your application does not guarantee approval or a lease offer.</li>
+                            <li>Any approved lease is subject to verification of documents, references, and payment capability.</li>
+                            <li>You agree to review the final lease agreement and comply with the property rules, rent schedule, and maintenance obligations.</li>
+                            <li>By submitting this application, you acknowledge that the information may be used for screening and lease processing.</li>
+                        </ul>
+                    </div>
+                    <div class="custom-control custom-checkbox mt-3">
+                        <input type="checkbox" class="custom-control-input" id="terms" name="terms" required>
+                        <label class="custom-control-label" for="terms">
+                            I have read the lease terms and conditions above and I agree to them. <span class="text-danger">*</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="/tenant/properties" class="btn btn-secondary px-4 mr-2">
+                        <i class="fas fa-arrow-left"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-submit">
+                        <i class="fas fa-paper-plane"></i> Submit Application
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

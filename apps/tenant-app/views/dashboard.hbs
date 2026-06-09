@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{csrfToken}}">
+    <title>Tenant Dashboard - LeaseHub</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --dark: #2c3e50;
+        }
+
+        body {
+            background: #f5f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            color: white !important;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            margin: 0 10px;
+            transition: 0.3s;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+            transform: translateY(-2px);
+        }
+
+        .main-content {
+            padding: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .welcome-header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+        }
+
+        .welcome-header h2 {
+            margin: 0;
+            color: var(--dark);
+            font-weight: 700;
+        }
+
+        .welcome-header p {
+            margin: 10px 0 0;
+            color: #7f8c8d;
+        }
+
+        .content-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+        }
+
+        .content-card h5 {
+            color: var(--dark);
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card.success {
+            border-left: 5px solid var(--success);
+        }
+
+        .stat-card.warning {
+            border-left: 5px solid var(--warning);
+        }
+
+        .stat-card.danger {
+            border-left: 5px solid var(--danger);
+        }
+
+        .stat-card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .stat-card.success .icon { color: var(--success); }
+        .stat-card.warning .icon { color: var(--warning); }
+        .stat-card.danger .icon { color: var(--danger); }
+
+        .stat-card h3 {
+            margin: 10px 0;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .stat-card p {
+            margin: 0;
+            color: #7f8c8d;
+            font-size: 0.95rem;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            border-top: none;
+            color: var(--dark);
+            font-weight: 600;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .badge-success { background: var(--success); }
+        .badge-warning { background: var(--warning); }
+        .badge-danger { background: var(--danger); }
+    </style>
+</head>
+<body data-tenant-id="{{tenant._id}}">
+    {{!-- Navigation --}}
+    <nav class="navbar navbar-expand-lg">
+        <a class="navbar-brand" href="/tenant/dashboard">🏠 LeaseHub</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/tenant/dashboard">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/tenant/properties">Browse Properties</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/tenant/applications">My Applications</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/tenant/payments">Payments</a>
+                </li>
+                {{#if activeLease}}
+                <li class="nav-item">
+                    <a class="nav-link" href="/tenant/maintenance">Maintenance</a>
+                </li>
+                {{/if}}
+                <li class="nav-item">
+                    <a class="nav-link" href="/tenant/support">Support</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/tenant/profile">Profile</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link" href="/tenant/logout">Logout</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link" href="#" id="notifToggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-bell"></i>
+                        <span id="notif-badge" class="badge badge-danger" style="display:none; margin-left:6px;">0</span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right p-2" aria-labelledby="notifToggle" style="min-width:320px;">
+                        <div id="notif-dropdown"><p class="text-muted m-2">Loading...</p></div>
+                        <div class="dropdown-divider"></div>
+                        <div class="px-2"><button id="markAllReadBtn" class="btn btn-sm btn-link">Mark all read</button></div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    {{!-- Main Content --}}
+    <div class="main-content">
+        {{!-- Welcome Header --}}
+        <div class="welcome-header">
+            <h2>Welcome back, {{tenantName}}! 👋</h2>
+            <p>Here's your property and financial overview</p>
+        </div>
+
+        {{#if dashboardSuccess}}
+        <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 15px; border-left: 5px solid #28a745;">
+            <strong>Success:</strong> {{dashboardSuccess}}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        {{/if}}
+
+        {{!-- Expired Application Banner --}}
+        {{#if hasExpiredApplication}}
+        <div class="alert alert-danger alert-dismissible fade show" style="border-radius: 15px; border-left: 5px solid #f44336;">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <h5 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> Application Expired</h5>
+            <p class="mb-2">Your lease application has expired due to non-payment. The property has been released and is now available to other applicants.</p>
+            <a href="/tenant/properties" class="btn btn-outline-light btn-sm">
+                <i class="fas fa-search"></i> Browse Available Properties
+            </a>
+        </div>
+        {{/if}}
+
+        {{!-- Booking Deposit Alert --}}
+        {{#if hasBookingDepositDue}}
+        <div class="alert alert-warning alert-dismissible fade show" style="border-radius: 15px; border-left: 5px solid #ff9800;">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <h5 class="alert-heading"><i class="fas fa-clock"></i> Booking Deposit Required</h5>
+            <p class="mb-2">Your application has been approved. Please pay the booking deposit to reserve your property.</p>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+                <div>
+                    <div style="font-size: 0.9rem; color: #7f8c8d;">Booking Deposit</div>
+                    <div style="font-size: 1.4rem; font-weight: 700; color: #e65100;">{{currencySymbol}}{{bookingDeposit.amount}}</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.9rem; color: #7f8c8d;">Time remaining</div>
+                    <div style="font-size: 1.1rem; font-weight: 600; color: #c62828;">
+                        {{bookingDeposit.hoursRemaining}}h {{bookingDeposit.minutesRemaining}}m
+                    </div>
+                </div>
+                <div>
+                    <button id="payDepositBtn" class="btn btn-warning">
+                        <i class="fas fa-credit-card"></i> Pay Now to Reserve Property
+                    </button>
+                </div>
+            </div>
+        </div>
+        {{/if}}
+
+        {{!-- Monthly Rent Summary --}}
+        {{#if rentSummary.hasInvoice}}
+        <div class="content-card">
+            <h5><i class="fas fa-receipt"></i> Monthly Rent Status</h5>
+            <div class="row align-items-center">
+                <div class="col-md-3 mb-3 mb-md-0">
+                    <div style="font-size: 0.9rem; color: #7f8c8d;">Rent Due</div>
+                    <div style="font-size: 1.6rem; font-weight: 700; color: var(--primary);">{{currencySymbol}}{{rentSummary.rentDue}}</div>
+                </div>
+                <div class="col-md-3 mb-3 mb-md-0">
+                    <div style="font-size: 0.9rem; color: #7f8c8d;">Due Date</div>
+                    <div style="font-size: 1.2rem; font-weight: 600; color: var(--dark);">{{#if rentSummary.dueDate}}{{rentSummary.dueDate}}{{else}}N/A{{/if}}</div>
+                </div>
+                <div class="col-md-3 mb-3 mb-md-0">
+                    <div style="font-size: 0.9rem; color: #7f8c8d;">Breakdown</div>
+                    <div style="font-size: 0.9rem; color: #7f8c8d;">
+                        <div>Rent: <strong>{{currencySymbol}}{{rentSummary.rentDue}}</strong></div>
+                        <div>Late Fee: <strong>{{currencySymbol}}{{rentSummary.lateFeeDue}}</strong></div>
+                        <div>Total Due: <strong style="color: var(--danger);">{{currencySymbol}}{{rentSummary.totalDue}}</strong></div>
+                    </div>
+                </div>
+                <div class="col-md-3 text-md-right">
+                    <div style="margin-bottom: 8px;">
+                        <span class="badge badge-{{#if (eq rentSummary.status 'overdue')}}danger{{else if (eq rentSummary.status 'partial')}}info{{else if (eq rentSummary.status 'unpaid')}}warning{{else}}secondary{{/if}}" style="padding: 6px 12px; border-radius: 20px; font-weight: 600; text-transform: capitalize;">
+                            {{rentSummary.status}}
+                        </span>
+                    </div>
+                    <button id="rentPayNowBtn" class="btn btn-primary" data-invoice-id="{{rentSummary.invoiceId}}">
+                        <i class="fas fa-credit-card"></i> Pay Rent Now
+                    </button>
+                </div>
+            </div>
+            <div class="mt-3" style="font-size: 0.9rem; color: #7f8c8d;">
+                Late fee: {{currencySymbol}}{{rentSummary.lateFeePerDay}} per day after {{rentSummary.graceDays}} days past due.
+            </div>
+        </div>
+        {{/if}}
+
+        {{!-- Property Card --}}
+        {{#if activeLease}}
+        <div class="content-card">
+            <h5><i class="fas fa-home"></i> My Property</h5>
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h4 style="color: var(--dark); margin-bottom: 10px;">{{property.propertyname}}</h4>
+                    <p style="color: #7f8c8d; margin: 0;">
+                        <i class="fas fa-map-marker-alt"></i> {{property.propertyaddress}}
+                    </p>
+                </div>
+                <div class="col-md-4 text-right">
+                    <div style="background: rgba(74, 144, 226, 0.1); padding: 20px; border-radius: 10px;">
+                        <p style="margin: 0; color: #7f8c8d; font-size: 14px;">Monthly Rent</p>
+                        <h2 style="color: var(--primary); margin: 5px 0 0 0;">{{currencySymbol}}{{property.rent}}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{else}}
+        <div class="content-card">
+            <div class="text-center py-5">
+                <i class="fas fa-home" style="font-size: 60px; color: #ccc;"></i>
+                <h5 style="margin-top: 20px; color: #7f8c8d;">Property Lifecycle Status</h5>
+                <p style="color: #999;">{{lifecycleState}}</p>
+            </div>
+        </div>
+        {{/if}}
+
+        {{!-- Financial Stats --}}
+        <div class="row mt-4">
+            <div class="col-md-4 mb-3">
+                <div class="stat-card warning">
+                    <div class="icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <h3>{{currencySymbol}}{{totalDue}}</h3>
+                    <p>Total Due</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="stat-card success">
+                    <div class="icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3>{{currencySymbol}}{{totalPaid}}</h3>
+                    <p>Total Paid</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="stat-card danger">
+                    <div class="icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <h3>{{tickets.length}}</h3>
+                    <p>Maintenance Requests</p>
+                </div>
+            </div>
+        </div>
+
+        {{!-- Recent Activity --}}
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="content-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 style="margin: 0;"><i class="fas fa-file-invoice"></i> Recent Invoices</h5>
+                        <a href="/tenant/invoices" class="btn btn-sm btn-primary">View All</a>
+                    </div>
+                    {{#if invoices.length}}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{#each invoices}}
+                                <tr>
+                                    <td>{{this.month}}</td>
+                                    <td>{{currencySymbol}}{{this.totalAmount}}</td>
+                                    <td>
+                                        <span class="badge badge-{{#if (eq this.status 'paid')}}success{{else}}warning{{/if}}">
+                                            {{this.status}}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {{/each}}
+                            </tbody>
+                        </table>
+                    </div>
+                    {{else}}
+                    <p class="text-center text-muted">No invoices yet</p>
+                    {{/if}}
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="content-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 style="margin: 0;"><i class="fas fa-tools"></i> Recent Maintenance</h5>
+                        <a href="/tenant/maintenance" class="btn btn-sm btn-primary">View All</a>
+                    </div>
+                    {{#if tickets.length}}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{#each tickets}}
+                                <tr>
+                                    <td>{{this.title}}</td>
+                                    <td>
+                                        <span class="badge badge-{{#if (eq this.status 'resolved')}}success{{else}}warning{{/if}}">
+                                            {{this.status}}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {{/each}}
+                            </tbody>
+                        </table>
+                    </div>
+                    {{else}}
+                    <p class="text-center text-muted">No maintenance requests yet</p>
+                    {{/if}}
+                </div>
+            </div>
+        </div>
+
+        {{!-- Activity Timeline --}}
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="content-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 style="margin: 0;"><i class="fas fa-stream"></i> Recent Activity</h5>
+                        <a href="/tenant/notifications" class="btn btn-sm btn-primary">View All</a>
+                    </div>
+                    {{#if activities.length}}
+                        <ul class="list-group list-group-flush">
+                            {{#each activities}}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{title}}</strong>
+                                        <div class="text-muted small">{{message}}</div>
+                                        <div class="text-muted small">{{createdAt}}</div>
+                                    </div>
+                                    {{#unless isRead}}
+                                        <span class="badge badge-primary">New</span>
+                                    {{/unless}}
+                                </li>
+                            {{/each}}
+                        </ul>
+                    {{else}}
+                        <p class="text-muted mb-0">No recent activity.</p>
+                    {{/if}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+    <script nonce="{{cspNonce}}">
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+        // Booking deposit payment
+        {{#if hasBookingDepositDue}}
+        document.getElementById('payDepositBtn')?.addEventListener('click', async function () {
+            try {
+                const res = await fetch('/tenant/pay-deposit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'CSRF-Token': '{{csrfToken}}'
+                    },
+                    body: JSON.stringify({ applicationId: '{{bookingDeposit.applicationId}}' })
+                });
+
+                const data = await res.json();
+                if (data && data.url) {
+                    window.location.href = data.url;
+                } else {
+                    alert(data.message || 'Failed to start payment. Please try again.');
+                }
+            } catch (e) {
+                console.error('Deposit payment error', e);
+                alert('Failed to start payment. Please try again.');
+            }
+        });
+        {{/if}}
+
+        // Monthly rent payment
+        const rentPayBtn = document.getElementById('rentPayNowBtn');
+        if (rentPayBtn) {
+            rentPayBtn.addEventListener('click', async function () {
+                const btn = this;
+                const invoiceId = btn.getAttribute('data-invoice-id');
+                if (!invoiceId) return;
+
+                btn.disabled = true;
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+                try {
+                    const res = await fetch(`/tenant/invoices/${invoiceId}/pay`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        credentials: 'include'
+                    });
+
+                    const data = await res.json();
+                    if (data && data.url) {
+                        window.location.href = data.url;
+                    } else {
+                        alert(data?.error || 'Failed to start payment. Please try again.');
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                    }
+                } catch (e) {
+                    console.error('Rent payment error', e);
+                    alert('Failed to start payment. Please try again.');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            });
+        }
+
+        const dashboardAlert = document.querySelector('.alert.alert-success');
+        if (dashboardAlert) {
+            setTimeout(() => {
+                dashboardAlert.classList.remove('show');
+                dashboardAlert.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+    <script src="/js/notifications.js" nonce="{{cspNonce}}"></script>
+</body>
+</html>

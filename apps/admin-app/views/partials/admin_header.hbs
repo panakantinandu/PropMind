@@ -1,0 +1,30 @@
+<nav class="navbar navbar-expand-lg">
+    <a class="navbar-brand" href="/admin/dashboard">🏢 LeaseHub Admin</a>
+    <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item"><a class="nav-link active" href="/admin/dashboard">Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" href="/admin/tenants">Tenants</a></li>
+            <li class="nav-item"><a class="nav-link" href="/admin/properties">Properties</a></li>
+            <li class="nav-item"><a class="nav-link" href="/admin/applications">Applications</a></li>
+            <li class="nav-item"><a class="nav-link" href="/admin/payments">Payments</a></li>
+            <li class="nav-item"><a class="nav-link" href="/admin/maintenance">Maintenance</a></li>
+            <!-- Notifications menu removed: use bell icon dropdown only -->
+            <li class="nav-item"><a class="nav-link" href="/admin/support">Support Center</a></li>
+            <li class="nav-item"><a class="nav-link" href="/admin/settings">Settings</a></li>
+            <li class="nav-item"><a class="nav-link" href="/admin/logout">Logout</a></li>
+            <li class="nav-item dropdown">
+                <a class="nav-link" href="/admin/notifications" id="adminNotifToggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-bell"></i>
+                    <span id="admin-notif-badge" class="badge badge-danger" style="display:none; margin-left:6px;">0</span>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right p-2" aria-labelledby="adminNotifToggle" style="min-width:320px;">
+                    <div id="admin-notif-dropdown"><p class="text-muted m-2">Loading...</p></div>
+                    <div class="dropdown-divider"></div>
+                    <a href="/admin/notifications" class="dropdown-item text-center">View All Notifications</a>
+                    <div class="dropdown-divider"></div>
+                    <div class="px-2"><button id="adminMarkAllReadBtn" class="btn btn-sm btn-link">Mark all read</button></div>
+                </div>
+            </li>
+        </ul>
+    </div>
+</nav>

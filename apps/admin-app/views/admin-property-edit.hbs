@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{csrfToken}}">
+    <title>Edit Property - LeaseHub Admin</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/admin/dashboard">🏢 LeaseHub Admin</a>
+    </nav>
+    <div class="container mt-4">
+        <a href="/admin/properties" class="btn btn-link mb-3"><i class="fas fa-arrow-left"></i> Back to Properties</a>
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-edit"></i> Edit Property</h4>
+            </div>
+            <div class="card-body">
+                <form action="/admin/properties/{{property._id}}?_csrf={{csrfToken}}" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+                    <div class="form-group">
+                        <label>Property Name</label>
+                        <input type="text" class="form-control" name="propertyname" value="{{property.propertyname}}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Address</label>
+                        <textarea class="form-control" name="propertyaddress" rows="2" required>{{property.propertyaddress}}</textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label>City</label>
+                            <input type="text" class="form-control" name="city" value="{{property.city}}" required>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label>State</label>
+                            <input type="text" class="form-control" name="state" value="{{property.state}}" required>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label>PIN Code</label>
+                            <input type="text" class="form-control" name="pincode" value="{{property.pincode}}" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label>Monthly Rent</label>
+                            <input type="number" class="form-control" name="rent" value="{{property.rent}}" required>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label>Booking Deposit</label>
+                            <input type="number" class="form-control" name="bookingDeposit" value="{{property.bookingDeposit}}" required>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label>Security Deposit</label>
+                            <input type="number" class="form-control" name="deposit" value="{{property.deposit}}" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select class="form-control" name="status">
+                            <option value="available" {{#if (eq property.status 'available')}}selected{{/if}}>Available</option>
+                            <option value="reserved" {{#if (eq property.status 'reserved')}}selected{{/if}}>Reserved</option>
+                            <option value="occupied" {{#if (eq property.status 'occupied')}}selected{{/if}}>Occupied</option>
+                            <option value="maintenance" {{#if (eq property.status 'maintenance')}}selected{{/if}}>Under Maintenance</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-images"></i> Property Photos</label>
+                        {{#if property.images}}
+                        <div class="row mb-3" id="currentImages">
+                            {{#each property.images}}
+                            <div class="col-md-3 mb-3">
+                                <div class="card">
+                                    <img src="/uploads/properties/{{this}}" class="card-img-top" style="height: 150px; object-fit: cover;" alt="Property photo">
+                                    <div class="card-body p-2 text-center">
+                                        <button type="button" class="btn btn-sm btn-danger" onclick="markForDeletion('{{this}}')">
+                                            <i class="fas fa-trash"></i> Remove
+                                        </button>
+                                        <input type="hidden" name="existingImages[]" value="{{this}}" id="img-{{this}}">
+                                    </div>
+                                </div>
+                            </div>
+                            {{/each}}
+                        </div>
+                        {{else}}
+                        <p class="text-muted">No photos uploaded yet</p>
+                        {{/if}}
+                        
+                        <label class="mt-3">Add New Photos (Max 10 total, 5MB each)</label>
+                        <input type="file" class="form-control-file" name="propertyImages" multiple accept="image/*" id="propertyImages">
+                        <small class="form-text text-muted">Supported formats: JPG, PNG, GIF, WEBP</small>
+                        <div id="imagePreview" class="row mt-3"></div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update Property</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script nonce="{{cspNonce}}">
+        function markForDeletion(imageName) {
+            const imageInput = document.getElementById('img-' + imageName);
+            if (imageInput) {
+                imageInput.remove();
+                imageInput.parentElement.parentElement.parentElement.style.opacity = '0.5';
+            }
+        }
+
+        document.getElementById('propertyImages').addEventListener('change', function(e) {
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = '';
+            const files = e.target.files;
+            
+            const currentCount = document.querySelectorAll('input[name="existingImages[]"]').length;
+            if (currentCount + files.length > 10) {
+                alert('Maximum 10 images allowed in total');
+                this.value = '';
+                return;
+            }
+            
+            Array.from(files).forEach((file, index) => {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert(`File ${file.name} is too large. Max size is 5MB`);
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const col = document.createElement('div');
+                    col.className = 'col-md-3 mb-3';
+                    col.innerHTML = `
+                        <div class="card">
+                            <img src="${e.target.result}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                            <div class="card-body p-2 text-center">
+                                <small class="text-success">New Photo</small>
+                            </div>
+                        </div>
+                    `;
+                    preview.appendChild(col);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    </script>
+</body>
+</html>

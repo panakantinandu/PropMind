@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - LeaseHub</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem 2rem;">
+        <a class="navbar-brand text-white" href="/tenant/dashboard">🏠 LeaseHub</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item"><a class="nav-link text-white" href="/tenant/dashboard">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="/tenant/properties">Properties</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="/tenant/applications">Applications</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="/tenant/invoices">Invoices</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="/tenant/payments">Payment History</a></li>
+                <li class="nav-item"><a class="nav-link text-white active" href="/tenant/notifications">Notifications</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="/tenant/profile">Profile</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="/tenant/logout">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h4 class="mb-0"><i class="fas fa-bell"></i> Notifications</h4>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div></div>
+                    <div>
+                        <button id="markAllRead" class="btn btn-sm btn-link">Mark all read</button>
+                    </div>
+                </div>
+
+                {{#if notifications.length}}
+                    <ul class="list-group list-group-flush">
+                        {{#each notifications}}
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>{{title}}</strong>
+                                <div class="text-muted small">{{message}}</div>
+                                <div class="text-muted small">{{createdAt}}</div>
+                            </div>
+                            {{#unless isRead}}
+                                <span class="badge badge-primary">New</span>
+                            {{/unless}}
+                        </li>
+                        {{/each}}
+                    </ul>
+                {{else}}
+                    <p class="text-muted mb-0">No notifications yet.</p>
+                {{/if}}
+            </div>
+        </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/notifications.js"></script>
+</body>
+</html>

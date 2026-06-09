@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Login - LeaseHub</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="csrf-token" content="{{csrfToken}}">
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  @keyframes orb1Drift {
+    0%,100% { transform: translate(0,0) scale(1); opacity:.55; }
+    40%     { transform: translate(60px,-40px) scale(1.12); opacity:.7; }
+    70%     { transform: translate(-30px,30px) scale(.9); opacity:.45; }
+  }
+  @keyframes orb2Drift {
+    0%,100% { transform: translate(0,0) scale(1); opacity:.45; }
+    35%     { transform: translate(-50px,35px) scale(.9); opacity:.6; }
+    70%     { transform: translate(35px,-25px) scale(1.1); opacity:.5; }
+  }
+  @keyframes orb3Drift {
+    0%,100% { transform: translate(0,0) scale(1); }
+    50%     { transform: translate(25px,40px) scale(1.15); }
+  }
+  @keyframes cardIn {
+    from { opacity:0; transform:translateY(36px) scale(.97); }
+    to   { opacity:1; transform:translateY(0) scale(1); }
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(14px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  @keyframes shimmerBtn {
+    0%   { background-position:-200% center; }
+    100% { background-position:200% center; }
+  }
+  @keyframes spin {
+    to { transform:rotate(360deg); }
+  }
+  @keyframes checkPop {
+    0%   { transform:scale(0) rotate(-10deg); opacity:0; }
+    60%  { transform:scale(1.2) rotate(4deg); opacity:1; }
+    100% { transform:scale(1) rotate(0deg); opacity:1; }
+  }
+  @keyframes ripple {
+    to { transform:scale(3.5); opacity:0; }
+  }
+  @keyframes particleRise {
+    0%   { transform:translateY(0) translateX(0); opacity:0; }
+    10%  { opacity:1; }
+    90%  { opacity:.6; }
+    100% { transform:translateY(-320px) translateX(var(--dx)); opacity:0; }
+  }
+  @keyframes pulseRing {
+    0%   { box-shadow:0 0 0 0 rgba(167,139,250,.5); }
+    70%  { box-shadow:0 0 0 14px rgba(167,139,250,0); }
+    100% { box-shadow:0 0 0 0 rgba(167,139,250,0); }
+  }
+  @keyframes lineGrow {
+    from { transform:scaleX(0); }
+    to   { transform:scaleX(1); }
+  }
+  @keyframes successSlide {
+    from { opacity:0; transform:translateY(-10px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  body {
+    font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    overflow:hidden;
+    background:#0f0b1e;
+    position:relative;
+  }
+
+  .bg-mesh {
+    position:fixed; inset:0; z-index:0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 20%, #1e0a3c 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 80% 80%, #0d1a3e 0%, transparent 60%),
+      radial-gradient(ellipse 50% 50% at 50% 50%, #110824 0%, transparent 100%);
+    background-color:#0f0b1e;
+  }
+
+  .orb {
+    position:fixed; border-radius:50%;
+    filter:blur(72px); pointer-events:none; z-index:1;
+  }
+  .orb-1 {
+    width:420px; height:420px;
+    background:radial-gradient(circle, #7c3aed 0%, #4c1d95 60%, transparent 100%);
+    top:-100px; left:-100px;
+    animation:orb1Drift 12s ease-in-out infinite;
+  }
+  .orb-2 {
+    width:360px; height:360px;
+    background:radial-gradient(circle, #2563eb 0%, #1e3a8a 60%, transparent 100%);
+    bottom:-80px; right:-80px;
+    animation:orb2Drift 15s ease-in-out infinite;
+  }
+  .orb-3 {
+    width:260px; height:260px;
+    background:radial-gradient(circle, #db2777 0%, #831843 60%, transparent 100%);
+    bottom:120px; left:80px;
+    animation:orb3Drift 18s ease-in-out infinite;
+  }
+
+  .grid-overlay {
+    position:fixed; inset:0; z-index:1; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+    background-size:48px 48px;
+  }
+
+  .particles { position:fixed; inset:0; z-index:2; pointer-events:none; }
+  .particle {
+    position:absolute; bottom:0;
+    width:3px; height:3px; border-radius:50%;
+    background:rgba(167,139,250,.7);
+    animation:particleRise linear infinite;
+  }
+
+  .login-card {
+    position:relative; z-index:10;
+    width:100%; max-width:460px;
+    background:rgba(15,10,35,.72);
+    border:1px solid rgba(167,139,250,.22);
+    border-radius:28px;
+    padding:48px 44px 40px;
+    box-shadow:
+      0 0 0 1px rgba(167,139,250,.08),
+      0 40px 80px rgba(0,0,0,.6),
+      0 0 80px rgba(124,58,237,.12),
+      inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter:blur(28px);
+    -webkit-backdrop-filter:blur(28px);
+    animation:cardIn .75s cubic-bezier(.16,1,.3,1) both;
+    overflow:hidden;
+  }
+
+  .login-card::before {
+    content:'';
+    position:absolute; top:0; left:50%; transform:translateX(-50%);
+    width:60%; height:1px;
+    background:linear-gradient(90deg, transparent, rgba(167,139,250,.6), transparent);
+  }
+
+  .logo-row {
+    display:flex; align-items:center; justify-content:center; gap:14px;
+    margin-bottom:6px;
+    animation:fadeUp .6s .1s both;
+  }
+  .logo-icon {
+    width:54px; height:54px; border-radius:18px;
+    background:linear-gradient(135deg,#7c3aed,#4f46e5);
+    display:flex; align-items:center; justify-content:center;
+    font-size:26px;
+    box-shadow:0 8px 24px rgba(124,58,237,.5);
+    animation:pulseRing 2.8s ease-in-out infinite;
+    border:1px solid rgba(167,139,250,.35);
+    flex-shrink:0;
+  }
+  .logo-text { font-size:2rem; font-weight:800; color:#fff; letter-spacing:-.5px; }
+  .logo-text span { color:rgba(167,139,250,.75); font-weight:400; }
+
+  .tagline {
+    text-align:center; color:rgba(255,255,255,.45);
+    font-size:.82rem; font-weight:500; letter-spacing:.8px; text-transform:uppercase;
+    margin-bottom:10px;
+    animation:fadeUp .6s .18s both;
+  }
+
+  .accent-line {
+    height:1px; margin:0 auto 28px;
+    width:80px;
+    background:linear-gradient(90deg,transparent,rgba(167,139,250,.7),transparent);
+    transform-origin:center;
+    animation:lineGrow .7s .3s both;
+  }
+
+  .demo-banner {
+    background:linear-gradient(135deg,rgba(124,58,237,.18),rgba(79,70,229,.12));
+    border:1px solid rgba(167,139,250,.3);
+    border-radius:14px;
+    padding:12px 16px;
+    margin-bottom:26px;
+    display:flex; align-items:center; gap:12px;
+    cursor:pointer;
+    transition:background .2s, transform .15s;
+    animation:fadeUp .6s .28s both;
+  }
+  .demo-banner:hover {
+    background:linear-gradient(135deg,rgba(124,58,237,.28),rgba(79,70,229,.2));
+    transform:translateY(-1px);
+  }
+  .demo-banner:active { transform:translateY(0); }
+  .demo-key {
+    width:34px; height:34px; border-radius:10px;
+    background:rgba(167,139,250,.15);
+    border:1px solid rgba(167,139,250,.25);
+    display:flex; align-items:center; justify-content:center;
+    font-size:16px; flex-shrink:0;
+  }
+  .demo-info { flex:1; }
+  .demo-label { font-size:.72rem; color:rgba(167,139,250,.7); text-transform:uppercase; letter-spacing:.6px; font-weight:600; margin-bottom:3px; }
+  .demo-creds { font-size:.88rem; color:rgba(255,255,255,.9); font-weight:600; }
+  .demo-creds strong { color:#a78bfa; }
+  .demo-fill-hint { font-size:.72rem; color:rgba(167,139,250,.6); white-space:nowrap; text-align:right; font-weight:500; }
+
+  .field { margin-bottom:20px; }
+  .field:nth-child(1) { animation:fadeUp .6s .36s both; }
+  .field:nth-child(2) { animation:fadeUp .6s .44s both; }
+
+  .field-label {
+    display:flex; align-items:center; gap:6px;
+    font-size:.75rem; font-weight:700; color:rgba(255,255,255,.55);
+    text-transform:uppercase; letter-spacing:.7px;
+    margin-bottom:9px;
+  }
+  .field-label-dot {
+    width:5px; height:5px; border-radius:50%;
+    background:rgba(167,139,250,.5);
+  }
+
+  .input-wrap {
+    position:relative;
+    border-radius:14px;
+    background:#1a1130;
+    border:1.5px solid rgba(167,139,250,.2);
+    transition:border-color .2s, box-shadow .2s, background .2s;
+  }
+  .input-wrap:focus-within {
+    border-color:rgba(167,139,250,.65);
+    box-shadow:0 0 0 4px rgba(124,58,237,.2), 0 2px 12px rgba(124,58,237,.15);
+    background:#1e1438;
+  }
+
+  .input-icon {
+    position:absolute; left:15px; top:50%; transform:translateY(-50%);
+    width:18px; height:18px; pointer-events:none;
+    color:rgba(167,139,250,.5);
+    transition:color .2s;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .input-wrap:focus-within .input-icon { color:rgba(167,139,250,.9); }
+  .input-icon svg { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+
+  .field-input {
+    width:100%; padding:14px 16px 14px 46px;
+    background:transparent;
+    border:none; outline:none;
+    color:#f0ecff;
+    font-size:.95rem; font-family:'Inter',sans-serif;
+    caret-color:#a78bfa;
+    border-radius:14px;
+  }
+  .field-input::placeholder { color:rgba(167,139,250,.3); }
+  .field-input:-webkit-autofill {
+    -webkit-text-fill-color:#f0ecff !important;
+    -webkit-box-shadow:0 0 0 100px #1a1130 inset !important;
+    transition:background-color 9999s ease-in-out 0s;
+  }
+
+  .pwd-input { padding-right:48px; }
+
+  .toggle-eye {
+    position:absolute; right:14px; top:50%; transform:translateY(-50%);
+    background:none; border:none; cursor:pointer; padding:4px;
+    color:rgba(167,139,250,.45); transition:color .15s, transform .15s;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .toggle-eye:hover { color:rgba(167,139,250,.9); transform:translateY(-50%) scale(1.1); }
+  .toggle-eye svg { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+
+  .btn-submit {
+    width:100%; padding:15px;
+    border-radius:14px; border:none; cursor:pointer;
+    font-family:'Inter',sans-serif; font-size:1rem; font-weight:700;
+    letter-spacing:.2px; color:#fff;
+    background:linear-gradient(135deg,#7c3aed 0%,#4f46e5 50%,#7c3aed 100%);
+    background-size:200% 100%;
+    animation:shimmerBtn 2.4s linear infinite, fadeUp .6s .54s both;
+    box-shadow:0 8px 28px rgba(124,58,237,.45);
+    transition:transform .15s, box-shadow .15s;
+    position:relative; overflow:hidden;
+    margin-top:8px;
+  }
+  .btn-submit:hover { transform:translateY(-2px); box-shadow:0 14px 36px rgba(124,58,237,.6); }
+  .btn-submit:active { transform:translateY(0); }
+  .btn-submit:disabled { opacity:.7; cursor:not-allowed; }
+  .btn-inner { display:flex; align-items:center; justify-content:center; gap:9px; position:relative; z-index:1; }
+
+  .btn-spinner {
+    display:none; width:18px; height:18px;
+    border:2.5px solid rgba(255,255,255,.3);
+    border-top-color:#fff; border-radius:50%;
+    animation:spin .7s linear infinite;
+  }
+
+  .ripple-wave {
+    position:absolute; border-radius:50%;
+    background:rgba(255,255,255,.18);
+    width:40px; height:40px;
+    transform:scale(0); opacity:1;
+    animation:ripple .5s ease-out forwards;
+    pointer-events:none;
+  }
+
+  .alert-danger-custom {
+    display:flex; align-items:center; gap:10px;
+    background:rgba(220,38,38,.14);
+    border:1px solid rgba(248,113,113,.3);
+    border-radius:12px;
+    padding:11px 14px;
+    color:#fca5a5; font-size:.88rem;
+    margin-bottom:20px;
+  }
+  .alert-danger-custom svg { width:17px; height:17px; stroke:#f87171; flex-shrink:0; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+
+  .alert-success-custom {
+    display:flex; align-items:center; gap:10px;
+    background:rgba(22,163,74,.14);
+    border:1px solid rgba(74,222,128,.3);
+    border-radius:12px;
+    padding:11px 14px;
+    color:#86efac; font-size:.88rem;
+    margin-bottom:20px;
+  }
+  .alert-success-custom svg { width:17px; height:17px; stroke:#4ade80; flex-shrink:0; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+
+  .redirect-note {
+    margin-top:8px; font-size:.85rem;
+    color:rgba(167,139,250,.65); text-align:center;
+  }
+  .redirect-note a { color:#a78bfa; }
+
+  .success-overlay {
+    position:absolute; inset:0; border-radius:28px; z-index:20;
+    background:linear-gradient(135deg,rgba(15,10,35,.97),rgba(30,20,60,.97));
+    display:none; flex-direction:column;
+    align-items:center; justify-content:center; gap:14px;
+  }
+  .success-check {
+    width:70px; height:70px; border-radius:50%;
+    background:linear-gradient(135deg,#7c3aed,#4f46e5);
+    display:flex; align-items:center; justify-content:center;
+    font-size:30px; color:#fff;
+    box-shadow:0 12px 36px rgba(124,58,237,.6);
+    animation:checkPop .5s .05s both;
+  }
+  .success-title { font-size:1.2rem; font-weight:700; color:#fff; opacity:0; animation:successSlide .4s .4s both; }
+  .success-sub { font-size:.85rem; color:rgba(167,139,250,.75); opacity:0; animation:successSlide .4s .55s both; }
+
+  .signup-link {
+    display:block; text-align:center; margin-top:22px;
+    color:rgba(167,139,250,.55); font-size:.85rem; text-decoration:none;
+    transition:color .15s;
+    animation:fadeUp .6s .62s both;
+  }
+  .signup-link:hover { color:rgba(167,139,250,1); }
+  .signup-link u { text-underline-offset:3px; }
+
+  @media(max-width:520px) {
+    .login-card { padding:36px 24px 32px; }
+    .logo-text { font-size:1.7rem; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="bg-mesh"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="grid-overlay"></div>
+  <div class="particles" id="particles"></div>
+
+  <div class="login-card" id="loginCard">
+
+    <div class="success-overlay" id="successOverlay">
+      <div class="success-check">✓</div>
+      <div class="success-title">Welcome back!</div>
+      <div class="success-sub">Redirecting to dashboard…</div>
+    </div>
+
+    <div class="logo-row">
+      <div class="logo-icon">🏢</div>
+      <div class="logo-text">Lease<span>Hub</span></div>
+    </div>
+
+    <p class="tagline">Admin Console</p>
+    <div class="accent-line"></div>
+
+    <div class="demo-banner" id="demoBanner">
+      <div class="demo-key">🔑</div>
+      <div class="demo-info">
+        <div class="demo-label">Demo credentials</div>
+        <div class="demo-creds">Username: <strong>Admin2</strong> &nbsp;/&nbsp; Password: <strong>Admin2@123</strong></div>
+      </div>
+      <div class="demo-fill-hint">↓ autofill</div>
+    </div>
+
+    {{#if error}}
+    <div class="alert-danger-custom">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      {{error}}
+    </div>
+    {{/if}}
+
+    {{#if success}}
+    <div class="alert-success-custom">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      {{success}}
+    </div>
+    {{#if autoRedirect}}
+    <script nonce="{{cspNonce}}">
+      setTimeout(function() { window.location.href = "{{autoRedirect}}"; }, 3000);
+    </script>
+    <div class="redirect-note">
+      Redirecting to dashboard in 3 seconds…
+      <br><br>
+      <a href="{{autoRedirect}}">Click here if not redirected automatically.</a>
+    </div>
+    <style>#loginForm { display:none !important; }</style>
+    {{/if}}
+    {{/if}}
+
+    <form id="loginForm" method="POST" action="/admin/login" novalidate>
+      <input type="hidden" name="_csrf" value="{{csrfToken}}">
+
+      <div class="field">
+        <label class="field-label" for="username">
+          <span class="field-label-dot"></span> Username
+        </label>
+        <div class="input-wrap">
+          <span class="input-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </span>
+          <input
+            type="text"
+            class="field-input"
+            id="username"
+            name="username"
+            placeholder="Enter your username"
+            required
+            autocomplete="username"
+          >
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="password">
+          <span class="field-label-dot"></span> Password
+        </label>
+        <div class="input-wrap">
+          <span class="input-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </span>
+          <input
+            type="password"
+            class="field-input pwd-input"
+            id="password"
+            name="password"
+            placeholder="Enter your password"
+            required
+            autocomplete="current-password"
+          >
+          <button type="button" class="toggle-eye" id="togglePwd" aria-label="Toggle password visibility">
+            <svg id="eyeSvg" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit" id="loginBtn">
+        <div class="btn-inner">
+          <div class="btn-spinner" id="btnSpinner"></div>
+          <span id="btnLabel">Login</span>
+          <svg id="btnArrow" viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+      </button>
+
+      <a href="/admin/signup/form" class="signup-link">Don't have an account? <u>Sign up here</u></a>
+    </form>
+
+  </div>
+
+  <script nonce="{{cspNonce}}">
+    (function () {
+
+      /* Particles */
+      var pc = document.getElementById('particles');
+      for (var i = 0; i < 22; i++) {
+        (function () {
+          var p = document.createElement('div');
+          p.className = 'particle';
+          var dx = ((Math.random() - 0.5) * 80).toFixed(0) + 'px';
+          p.style.cssText =
+            'left:' + (Math.random() * 100).toFixed(1) + '%;' +
+            'width:' + (Math.random() * 2.5 + 1.5).toFixed(1) + 'px;' +
+            'height:' + (Math.random() * 2.5 + 1.5).toFixed(1) + 'px;' +
+            '--dx:' + dx + ';' +
+            'animation-duration:' + (Math.random() * 10 + 7).toFixed(1) + 's;' +
+            'animation-delay:-' + (Math.random() * 12).toFixed(1) + 's;' +
+            'opacity:' + (Math.random() * 0.5 + 0.2).toFixed(2) + ';';
+          pc.appendChild(p);
+        })();
+      }
+
+      /* Password toggle */
+      var toggleBtn = document.getElementById('togglePwd');
+      var pwdInput  = document.getElementById('password');
+      var eyeSvg    = document.getElementById('eyeSvg');
+      var eyeOff = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+      var eyeOn  = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+      toggleBtn.addEventListener('click', function () {
+        var show = pwdInput.type === 'password';
+        pwdInput.type = show ? 'text' : 'password';
+        eyeSvg.innerHTML = show ? eyeOff : eyeOn;
+      });
+
+      /* Demo autofill */
+      function typeInto(el, text, cb) {
+        el.value = '';
+        var i = 0;
+        var t = setInterval(function () {
+          el.value += text[i++];
+          if (i === text.length) { clearInterval(t); if (cb) setTimeout(cb, 100); }
+        }, 55);
+      }
+      document.getElementById('demoBanner').addEventListener('click', function () {
+        var u = document.getElementById('username');
+        var p = document.getElementById('password');
+        typeInto(u, 'Admin2', function () { typeInto(p, 'Admin2@123'); });
+        this.style.background = 'linear-gradient(135deg,rgba(124,58,237,.35),rgba(79,70,229,.25))';
+        var self = this;
+        setTimeout(function () { self.style.background = ''; }, 700);
+      });
+
+      /* Ripple */
+      var loginBtn = document.getElementById('loginBtn');
+      loginBtn.addEventListener('click', function (e) {
+        var rect = loginBtn.getBoundingClientRect();
+        var r = document.createElement('span');
+        r.className = 'ripple-wave';
+        r.style.left = (e.clientX - rect.left - 20) + 'px';
+        r.style.top  = (e.clientY - rect.top  - 20) + 'px';
+        loginBtn.appendChild(r);
+        setTimeout(function () { r.remove(); }, 550);
+      });
+
+      /* Submit loading state */
+      var form    = document.getElementById('loginForm');
+      var spinner = document.getElementById('btnSpinner');
+      var label   = document.getElementById('btnLabel');
+      var arrow   = document.getElementById('btnArrow');
+      var overlay = document.getElementById('successOverlay');
+      form.addEventListener('submit', function (e) {
+        spinner.style.display = 'block';
+        label.textContent = 'Signing in…';
+        arrow.style.display = 'none';
+        loginBtn.disabled = true;
+        // no e.preventDefault() — lets the real POST go through
+        setTimeout(function () {
+          overlay.style.display = 'flex';
+        }, 70);
+      });
+
+    })();
+  </script>
+
+</body>
+</html>

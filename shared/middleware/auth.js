@@ -12,7 +12,10 @@ function wantsJson(req) {
 }
 
 function respondUnauthenticated(req, res, redirectTo) {
-    if (wantsJson(req)) return res.status(401).json({ error: 'Unauthorized' });
+    // For AJAX clients and specific admin AJAX routes, always return a JSON 401
+    if (wantsJson(req) || String(req.originalUrl || '').startsWith('/admin/notifications') || String(req.originalUrl || '').startsWith('/admin/support') || String(req.originalUrl || '') === '/admin/dashboard') {
+        return res.status(401).json({ success: false, authenticated: false });
+    }
     return res.redirect(redirectTo);
 }
 
@@ -26,6 +29,7 @@ function requireAdmin() {
 
     return async (req, res, next) => {
         try {
+            console.log('[AUTH]', req.originalUrl, 'sessionID:', req.sessionID, 'adminId:', req.session && req.session.adminId, 'protocol:', req.protocol, 'x-forwarded-proto:', req.headers['x-forwarded-proto'], 'accept:', req.headers.accept, "x-requested-with:", req.headers['x-requested-with']);
             if (!req.session || !req.session.loggedIn || req.session.userType !== 'admin' || !req.session.adminId) {
                 return respondUnauthenticated(req, res, '/admin/login/form');
             }
@@ -63,10 +67,10 @@ function requireTenant() {
                 _id: req.session.tenantId,
                 isDeleted: false
             })
-                .select('_id status')
+                .select('_id status isVerified')
                 .lean();
 
-            if (!tenant || tenant.status !== 'active') {
+            if (!tenant || (tenant.status !== 'active' && tenant.isVerified !== true)) {
                 if (req.session) {
                     req.session.destroy(() => {});
                 }

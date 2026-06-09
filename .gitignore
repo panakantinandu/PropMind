@@ -115,3 +115,15 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Debug / scratch files — never commit these
+scratch/
+*.txt
+cookie*.txt
+cj.txt
+login_form*.html
+notifications_page.html
+admin_dashboard.html
+admin_login.html
+temp-replace.js
+repo_refactor.py

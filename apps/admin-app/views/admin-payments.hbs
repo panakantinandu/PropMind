@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{csrfToken}}">
+    <title>Payments - LeaseHub Admin</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background: #f5f7fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem 2rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .navbar-brand { color: white !important; font-weight: 700; font-size: 1.5rem; }
+        .nav-link { color: rgba(255, 255, 255, 0.9) !important; margin: 0 10px; }
+        .nav-link:hover { color: white !important; }
+        .main-content { padding: 30px; max-width: 1400px; margin: 0 auto; }
+        .page-header { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); margin-bottom: 30px; }
+        .content-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); }
+        .table th { background: #f8f9fa; color: #2c3e50; font-weight: 600; }
+        .badge-approved { background: #4caf50; color: white; padding: 6px 12px; border-radius: 20px; }
+        .badge-pending { background: #ff9800; color: white; padding: 6px 12px; border-radius: 20px; }
+        .badge-rejected { background: #f44336; color: white; padding: 6px 12px; border-radius: 20px; }
+    </style>
+    </head>
+    <body>
+        {{> admin_header}}
+
+    <div class="main-content">
+        <div class="page-header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h2><i class="fas fa-credit-card"></i> Payments Management</h2>
+                    <p>View and manage all payment transactions</p>
+                </div>
+                <a href="/admin/invoices/create" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create Invoice
+                </a>
+            </div>
+        </div>
+
+        <div class="content-card">
+            {{#if invoices.length}}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Tenant</th>
+                            <th>Property</th>
+                            <th>Type</th>
+                            <th>Invoice Due</th>
+                            <th>Amount / Details</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#each invoices}}
+                        <tr>
+                            <td>{{formatDate this.createdAt}}</td>
+                            <td>
+                                {{#if this.tenantId}}
+                                    {{this.tenantId.firstname}} {{this.tenantId.lastname}}
+                                {{else}}
+                                    <em>N/A</em>
+                                {{/if}}
+                            </td>
+                            <td>
+                                {{#if this.propertyId}}
+                                    {{this.propertyId.propertyname}}
+                                {{else}}
+                                    <em>N/A</em>
+                                {{/if}}
+                            </td>
+                            <td>
+                                {{#if (eq this.type 'booking_deposit')}}
+                                    Booking Deposit
+                                {{else}}
+                                    Rent / Other
+                                {{/if}}
+                            </td>
+                            <td>
+                                {{formatDate this.dueDate}}
+                            </td>
+                            <td>
+                                {{#if (eq this.type 'booking_deposit')}}
+                                    <strong>{{currencySymbol}}{{this.totalAmount}}</strong>
+                                    <div class="text-muted small">
+                                        Booking deposit
+                                        {{#if this.propertyId}}
+                                            &mdash; Total rent: {{currencySymbol}}{{this.propertyId.rent}}
+                                        {{/if}}
+                                    </div>
+                                {{else}}
+                                    <strong>{{currencySymbol}}{{this.totalAmount}}</strong>
+                                    <div class="text-muted small">
+                                        {{#if this.type}}
+                                            Invoice type: {{this.type}}
+                                        {{/if}}
+                                    </div>
+                                {{/if}}
+                            </td>
+                            <td>
+                                {{#if (eq this.status 'paid')}}
+                                    <span class="badge-approved">Paid</span>
+                                {{else if (eq this.status 'unpaid')}}
+                                    <span class="badge-pending">Unpaid</span>
+                                {{else if (eq this.status 'overdue')}}
+                                    <span class="badge-rejected">Overdue</span>
+                                {{else}}
+                                    <span class="badge-pending">{{this.status}}</span>
+                                {{/if}}
+                            </td>
+                        </tr>
+                        {{/each}}
+                    </tbody>
+                </table>
+            </div>
+            {{else}}
+            <div class="text-center py-5">
+                <i class="fas fa-file-invoice-dollar" style="font-size: 60px; color: #ccc;"></i>
+                <h5 style="margin-top: 20px; color: #7f8c8d;">No Payments Found Yet</h5>
+                <p style="color: #999;">Create an invoice to get started</p>
+                <a href="/admin/invoices/create" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create Your First Invoice
+                </a>
+            </div>
+            {{/if}}
+        </div>
+    </div>
+</body>
+</html>

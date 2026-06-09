@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{csrfToken}}">
+    <title>Tenant Registration - LeaseHub</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 30px 0;
+        }
+        .registration-container {
+            max-width: 900px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+        }
+        .registration-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .registration-header h2 {
+            color: #667eea;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .form-section {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .form-section:last-child {
+            border-bottom: none;
+        }
+        .form-section h5 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .btn-register {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            width: 100%;
+            color: white;
+        }
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .alert {
+            border-radius: 10px;
+        }
+
+        /* ---- password rule checklist ---- */
+        .pwd-rules {
+            list-style: none;
+            padding: 10px 14px;
+            margin: 8px 0 0;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 0.82rem;
+        }
+        .pwd-rules li {
+            color: #adb5bd;
+            margin-bottom: 3px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s;
+        }
+        .pwd-rules li.ok  { color: #28a745; }
+        .pwd-rules li .chk { font-size: 0.85rem; }
+
+        /* match indicator */
+        .pwd-match-msg {
+            font-size: 0.82rem;
+            margin-top: 4px;
+            min-height: 16px;
+        }
+        .pwd-match-msg.ok  { color: #28a745; }
+        .pwd-match-msg.err { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="registration-container">
+        <div class="registration-header">
+            <h2><i class="fas fa-user-plus"></i> Tenant Registration</h2>
+            <p class="text-muted">Create your account to browse and apply for properties</p>
+        </div>
+
+        {{#if error}}
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i> {{error}}
+        </div>
+        {{/if}}
+
+        <form action="/tenant/register" method="POST" id="registerForm">
+            <input type="hidden" name="_csrf" value="{{csrfToken}}">
+            <div class="form-section">
+                <h5><i class="fas fa-user"></i> Personal Information</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>First Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="firstname" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Last Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="lastname" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Email Address <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                            <small class="text-success" id="emailSuccess" style="display: none;">
+                                <i class="fas fa-check-circle"></i> Email available
+                            </small>
+                            <small class="text-danger" id="emailError" style="display: none;">
+                                <i class="fas fa-exclamation-circle"></i> Email already registered
+                            </small>
+                            <small class="text-muted" id="emailChecking" style="display: none;">
+                                <i class="fas fa-spinner fa-spin"></i> Checking...
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Phone Number <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="phone" name="phone" required pattern="[0-9]{10}" placeholder="10-digit mobile number">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Date of Birth</label>
+                            <input type="date" class="form-control" name="dob">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <select class="form-control" name="gender">
+                                <option value="">Select Gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h5><i class="fas fa-briefcase"></i> Professional Details</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Occupation</label>
+                            <input type="text" class="form-control" name="occupation" placeholder="e.g. Software Engineer">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Company Name</label>
+                            <input type="text" class="form-control" name="companyName">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Current Address</label>
+                    <textarea class="form-control" name="currentAddress" rows="2" placeholder="Your current residential address"></textarea>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h5><i class="fas fa-lock"></i> Account Credentials</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Tenant ID (Username) <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="tenantid" name="tenantid" required placeholder="e.g. TENANT001" pattern="[A-Za-z0-9_]{4,20}">
+                            <small class="text-success" id="tenantidSuccess" style="display: none;">
+                                <i class="fas fa-check-circle"></i> Tenant ID available
+                            </small>
+                            <small class="text-danger" id="tenantidError" style="display: none;">
+                                <i class="fas fa-exclamation-circle"></i> Tenant ID already taken
+                            </small>
+                            <small class="text-muted" id="tenantidChecking" style="display: none;">
+                                <i class="fas fa-spinner fa-spin"></i> Checking...
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Create Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" name="password" required id="password" placeholder="Create a strong password" autocomplete="new-password">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                        <i class="fas fa-eye" id="passwordIcon"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Real-time rule checklist -->
+                            <ul class="pwd-rules" id="pwdRulesList">
+                                <li id="rule-len"><span class="chk">&#9675;</span> At least 8 characters</li>
+                                <li id="rule-upper"><span class="chk">&#9675;</span> One uppercase letter</li>
+                                <li id="rule-lower"><span class="chk">&#9675;</span> One lowercase letter</li>
+                                <li id="rule-num"><span class="chk">&#9675;</span> One number</li>
+                                <li id="rule-special"><span class="chk">&#9675;</span> One special character</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" name="confirmPassword" required id="confirmPassword" placeholder="Re-enter your password" autocomplete="new-password">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
+                                <i class="fas fa-eye" id="confirmPasswordIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="pwd-match-msg" id="matchMsg"></div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" id="terms" name="terms" required>
+                    <label class="custom-control-label" for="terms">
+                        I agree to the terms and conditions and privacy policy <span class="text-danger">*</span>
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-register">
+                <i class="fas fa-user-plus"></i> Create Account
+            </button>
+
+            <div class="login-link">
+                <p class="text-muted">Already have an account? <a href="/tenant/login/form" class="font-weight-bold">Login here</a></p>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script nonce="{{cspNonce}}">
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        let emailValid = false;
+        let tenantidValid = false;
+
+        $(document).ready(function () {
+
+            // ---------- password rules ----------
+            const RULES = [
+                { id: 'rule-len',     test: p => p.length >= 8 },
+                { id: 'rule-upper',   test: p => /[A-Z]/.test(p) },
+                { id: 'rule-lower',   test: p => /[a-z]/.test(p) },
+                { id: 'rule-num',     test: p => /[0-9]/.test(p) },
+                { id: 'rule-special', test: p => /[^A-Za-z0-9]/.test(p) }
+            ];
+
+            function updateRules(pwd) {
+                return RULES.every(function (r) {
+                    const li  = document.getElementById(r.id);
+                    const chk = li.querySelector('.chk');
+                    const ok  = r.test(pwd);
+                    li.classList.toggle('ok', ok);
+                    chk.innerHTML = ok ? '&#10004;' : '&#9675;';
+                    return ok;
+                });
+            }
+
+            // ---------- match indicator ----------
+            function updateMatch() {
+                const pwd  = $('#password').val();
+                const conf = $('#confirmPassword').val();
+                const msg  = document.getElementById('matchMsg');
+                if (!conf.length) { msg.textContent = ''; msg.className = 'pwd-match-msg'; return; }
+                if (pwd === conf) { msg.innerHTML = '&#10004; Passwords match';        msg.className = 'pwd-match-msg ok'; }
+                else              { msg.innerHTML = '&#10006; Passwords do not match'; msg.className = 'pwd-match-msg err'; }
+            }
+
+            $('#password').on('input', function () {
+                updateRules(this.value);
+                updateMatch();
+            });
+            $('#confirmPassword').on('input', updateMatch);
+
+            // ---------- show/hide toggles ----------
+            $('#togglePassword').on('click', function (e) {
+                e.preventDefault();
+                const f = $('#password'), icon = $('#passwordIcon');
+                if (f.attr('type') === 'password') { f.attr('type', 'text'); icon.removeClass('fa-eye').addClass('fa-eye-slash'); }
+                else { f.attr('type', 'password'); icon.removeClass('fa-eye-slash').addClass('fa-eye'); }
+            });
+            $('#toggleConfirmPassword').on('click', function (e) {
+                e.preventDefault();
+                const f = $('#confirmPassword'), icon = $('#confirmPasswordIcon');
+                if (f.attr('type') === 'password') { f.attr('type', 'text'); icon.removeClass('fa-eye').addClass('fa-eye-slash'); }
+                else { f.attr('type', 'password'); icon.removeClass('fa-eye-slash').addClass('fa-eye'); }
+            });
+
+            // ---------- phone validation ----------
+            const phoneInput = document.getElementById('phone');
+            if (phoneInput) {
+                phoneInput.addEventListener('invalid', function () {
+                    this.setCustomValidity(this.validity.patternMismatch ? 'Phone number must be exactly 10 digits' : (this.validity.valueMissing ? 'Phone number is required' : ''));
+                });
+                phoneInput.addEventListener('input', function () { this.setCustomValidity(''); });
+            }
+
+            // ---------- email availability ----------
+            $('#email').on('blur', function () {
+                const email = $(this).val().trim();
+                $('#emailChecking, #emailSuccess, #emailError').css('display', 'none');
+                if (email.length > 3 && email.includes('@')) {
+                    $('#emailChecking').css('display', 'block');
+                    $.ajax({
+                        url: '/tenant/check-email', method: 'POST',
+                        contentType: 'application/json',
+                        headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : undefined,
+                        data: JSON.stringify({ email }),
+                        success: function (r) {
+                            $('#emailChecking').css('display', 'none');
+                            if (r.available) { $('#emailSuccess').css('display', 'block'); $('#email').removeClass('is-invalid').addClass('is-valid'); emailValid = true; }
+                            else             { $('#emailError').css('display', 'block');   $('#email').removeClass('is-valid').addClass('is-invalid'); emailValid = false; }
+                        },
+                        error: function () { $('#emailChecking').css('display', 'none'); $('#emailError').css('display', 'block').text('Error checking email'); emailValid = false; }
+                    });
+                } else { emailValid = false; }
+            });
+
+            // ---------- tenant ID availability ----------
+            $('#tenantid').on('blur', function () {
+                const tenantid = $(this).val().trim();
+                $('#tenantidChecking, #tenantidSuccess, #tenantidError').css('display', 'none');
+                if (tenantid.length >= 4) {
+                    $('#tenantidChecking').css('display', 'block');
+                    $.ajax({
+                        url: '/tenant/check-tenantid', method: 'POST',
+                        contentType: 'application/json',
+                        headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : undefined,
+                        data: JSON.stringify({ tenantid }),
+                        success: function (r) {
+                            $('#tenantidChecking').css('display', 'none');
+                            if (r.available) { $('#tenantidSuccess').css('display', 'block'); $('#tenantid').removeClass('is-invalid').addClass('is-valid'); tenantidValid = true; }
+                            else             { $('#tenantidError').css('display', 'block');   $('#tenantid').removeClass('is-valid').addClass('is-invalid'); tenantidValid = false; }
+                        },
+                        error: function () { $('#tenantidChecking').css('display', 'none'); tenantidValid = false; }
+                    });
+                } else { tenantidValid = false; }
+            });
+
+            // ---------- form submit gate ----------
+            $('#registerForm').on('submit', function (e) {
+                const pwd  = $('#password').val();
+                const conf = $('#confirmPassword').val();
+
+                if (!updateRules(pwd)) {
+                    e.preventDefault();
+                    alert('Password does not meet all the required security rules.');
+                    $('#password').focus();
+                    return false;
+                }
+                if (pwd !== conf) {
+                    e.preventDefault();
+                    const msg = document.getElementById('matchMsg');
+                    msg.innerHTML = '&#10006; Passwords do not match';
+                    msg.className = 'pwd-match-msg err';
+                    $('#confirmPassword').focus();
+                    return false;
+                }
+                if (!emailValid) {
+                    e.preventDefault();
+                    alert('Please use a valid and available email address!');
+                    return false;
+                }
+                if (!tenantidValid) {
+                    e.preventDefault();
+                    alert('Please use a valid and available Tenant ID!');
+                    return false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

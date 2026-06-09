@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{csrfToken}}">
+    <title>Add Property - LeaseHub Admin</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background: #f5f7fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem 2rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .navbar-brand { color: white !important; font-weight: 700; font-size: 1.5rem; }
+        .nav-link { color: rgba(255, 255, 255, 0.9) !important; margin: 0 10px; }
+        .nav-link:hover { color: white !important; }
+        .main-content { padding: 30px; max-width: 1000px; margin: 0 auto; }
+        .form-card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); }
+        .form-header { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #f0f0f0; }
+        .form-section { margin-bottom: 25px; }
+        .form-section h5 { color: #667eea; margin-bottom: 15px; font-weight: 600; }
+        .btn-submit { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 12px 40px; font-weight: 600; }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
+        .alert { border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <a class="navbar-brand" href="/admin/dashboard">🏢 LeaseHub Admin</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item"><a class="nav-link" href="/admin/dashboard">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="/admin/tenants">Tenants</a></li>
+                <li class="nav-item"><a class="nav-link active" href="/admin/properties">Properties</a></li>
+                <li class="nav-item"><a class="nav-link" href="/admin/payments">Payments</a></li>
+                <li class="nav-item"><a class="nav-link" href="/admin/logout">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="form-card">
+            <div class="form-header">
+                <h2><i class="fas fa-home"></i> Add New Property</h2>
+                <p class="text-muted">Enter property details to add to the system</p>
+            </div>
+
+            {{#if error}}
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i> {{error}}
+            </div>
+            {{/if}}
+
+            {{#if success}}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i> {{success}}
+            </div>
+            {{/if}}
+
+            <form action="/admin/properties/add?_csrf={{csrfToken}}" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="_csrf" value="{{csrfToken}}">
+                <div class="form-section">
+                    <h5><i class="fas fa-info-circle"></i> Basic Information</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Property Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="propertyname" required placeholder="e.g. Sunrise Apartments 101">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Property Type <span class="text-danger">*</span></label>
+                                <select class="form-control" name="propertytype" required>
+                                    <option value="">Select Type</option>
+                                    <option value="apartment">Apartment</option>
+                                    <option value="villa">Villa</option>
+                                    <option value="house">House</option>
+                                    <option value="commercial">Commercial</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Address <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="propertyaddress" rows="2" required placeholder="Full address with locality"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>City <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="city" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>State <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="state" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>PIN Code <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="pincode" required pattern="[0-9]{5}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h5><i class="fas fa-ruler-combined"></i> Property Details</h5>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Bedrooms <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" name="bedrooms" required min="1" max="10">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Bathrooms <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" name="bathrooms" required min="1" max="10">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Square Feet</label>
+                                <input type="number" class="form-control" name="squareFeet" min="100">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Furnishing</label>
+                                <select class="form-control" name="furnishing">
+                                    <option value="unfurnished">Unfurnished</option>
+                                    <option value="semi-furnished">Semi-Furnished</option>
+                                    <option value="fully-furnished">Fully Furnished</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h5><i class="fas fa-rupee-sign"></i> Financial Details</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Monthly Rent <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" name="rent" required min="1000" placeholder="$">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Security Deposit <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" name="deposit" required min="0" placeholder="$">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Booking Deposit <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" name="bookingDeposit" required min="0" placeholder="$">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Maintenance Fee</label>
+                                <input type="number" class="form-control" name="maintenanceFee" min="0" placeholder="$">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Rent Due Day (1-31) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" name="rentDueDay" required min="1" max="31" value="5" 
+                                       title="Day of month when rent is due">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Late Fee (per day)</label>
+                                <input type="number" class="form-control" name="lateFeePerDay" min="0" value="100" placeholder="$">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h5><i class="fas fa-cog"></i> Status & Amenities</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Status <span class="text-danger">*</span></label>
+                                <select class="form-control" name="status" required>
+                                    <option value="available">Available</option>
+                                    <option value="occupied">Occupied</option>
+                                    <option value="maintenance">Under Maintenance</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Parking Available</label>
+                                <select class="form-control" name="parking">
+                                    <option value="yes">Yes</option>
+                                    <option value="no">No</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Amenities (comma-separated)</label>
+                        <input type="text" class="form-control" name="amenities" 
+                               placeholder="e.g. Gym, Swimming Pool, Power Backup, Security">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea class="form-control" name="description" rows="3" 
+                                  placeholder="Additional details about the property"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h5><i class="fas fa-images"></i> Property Photos</h5>
+                    <div class="form-group">
+                        <label>Upload Photos (Max 10 images, 5MB each)</label>
+                        <input type="file" class="form-control-file" name="propertyImages" multiple accept="image/*" id="propertyImages">
+                        <small class="form-text text-muted">Supported formats: JPG, PNG, GIF, WEBP. First image will be the primary photo.</small>
+                    </div>
+                    <div id="imagePreview" class="row mt-3"></div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="/admin/properties" class="btn btn-secondary px-4 mr-2">
+                        <i class="fas fa-arrow-left"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-submit">
+                        <i class="fas fa-plus-circle"></i> Add Property
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script nonce="{{cspNonce}}">
+        // Auto-calculate security deposit as 2x rent (optional helper)
+        const rentInput = document.querySelector('input[name="rent"]');
+        const depositInput = document.querySelector('input[name="deposit"]');
+        const maintenanceInput = document.querySelector('input[name="maintenanceFee"]');
+        const bookingDepositInput = document.querySelector('input[name="bookingDeposit"]');
+
+        rentInput.addEventListener('change', function() {
+            if (depositInput && (!depositInput.value || depositInput.value == 0)) {
+                depositInput.value = this.value * 2;
+            }
+
+            // Suggest booking deposit as ~20% of total upfront (rent + deposit + maintenance)
+            if (bookingDepositInput && (!bookingDepositInput.value || bookingDepositInput.value == 0)) {
+                const rent = parseFloat(this.value) || 0;
+                const deposit = parseFloat(depositInput?.value) || 0;
+                const maintenance = parseFloat(maintenanceInput?.value) || 0;
+                const totalUpfront = rent + deposit + maintenance;
+                if (totalUpfront > 0) {
+                    bookingDepositInput.value = Math.round(totalUpfront * 0.2);
+                }
+            }
+        });
+
+        // Image preview functionality
+        document.getElementById('propertyImages').addEventListener('change', function(e) {
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = '';
+            const files = e.target.files;
+            
+            if (files.length > 10) {
+                alert('Maximum 10 images allowed');
+                this.value = '';
+                return;
+            }
+            
+            Array.from(files).forEach((file, index) => {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert(`File ${file.name} is too large. Max size is 5MB`);
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const col = document.createElement('div');
+                    col.className = 'col-md-3 mb-3';
+                    col.innerHTML = `
+                        <div class="card">
+                            <img src="${e.target.result}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                            <div class="card-body p-2 text-center">
+                                <small class="text-muted">${index === 0 ? 'Primary' : 'Photo ' + (index + 1)}</small>
+                            </div>
+                        </div>
+                    `;
+                    preview.appendChild(col);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    </script>
+</body>
+</html>

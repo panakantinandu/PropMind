@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{csrfToken}}">
+    <title>Property View - LeaseHub Admin</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/admin/dashboard">🏢 LeaseHub Admin</a>
+    </nav>
+    <div class="container mt-4">
+        <a href="/admin/properties" class="btn btn-link mb-3"><i class="fas fa-arrow-left"></i> Back to Properties</a>
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="fas fa-home"></i> {{property.propertyname}}</h4>
+                <span class="badge badge-secondary text-uppercase">{{property.status}}</span>
+            </div>
+            <div class="card-body">
+                {{#if property.images}}
+                <div class="mb-4">
+                    <h5><i class="fas fa-images"></i> Property Photos</h5>
+                    <div class="row">
+                        {{#each property.images}}
+                        <div class="col-md-3 mb-3">
+                            <img src="/uploads/properties/{{this}}" class="img-fluid rounded shadow-sm" 
+                                 alt="Property photo" style="width: 100%; height: 200px; object-fit: cover; cursor: pointer;"
+                                 onclick="window.open('/uploads/properties/{{this}}', '_blank')">
+                        </div>
+                        {{/each}}
+                    </div>
+                </div>
+                {{/if}}
+                <p><strong>Address:</strong> {{property.propertyaddress}}, {{property.city}}, {{property.state}} - {{property.pincode}}</p>
+                <p><strong>Rent:</strong> {{currencySymbol}}{{property.rent}} / month</p>
+                <p><strong>Booking Deposit:</strong> {{currencySymbol}}{{property.bookingDeposit}}</p>
+                <p><strong>Security Deposit:</strong> {{currencySymbol}}{{property.deposit}}</p>
+                <p><strong>Bedrooms:</strong> {{property.bedrooms}} | <strong>Bathrooms:</strong> {{property.bathrooms}}</p>
+                <p><strong>Furnishing:</strong> {{property.furnishing}}</p>
+                <p><strong>Amenities:</strong> {{#if property.amenities.length}}{{#each property.amenities}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}{{else}}None{{/if}}</p>
+                <p><strong>Tenant:</strong>
+                    {{#if property.tenantId}}
+                        {{property.tenantId.firstname}} {{property.tenantId.lastname}} ({{property.tenantId.email}})
+                    {{else}}
+                        <em>Not assigned</em>
+                    {{/if}}
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

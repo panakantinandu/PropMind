@@ -73,7 +73,8 @@ async function sendMail({ to, subject, text, html }) {
   
   try {
     console.log('[NOTIFY] Attempting to send email via', process.env.SMTP_HOST);
-    console.time('[NOTIFY] Email Send Duration');
+    const timerLabel = `[NOTIFY] Email Send Duration ${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    console.time(timerLabel);
     
     // Add timeout wrapper
     const timeoutPromise = new Promise((_, reject) => 
@@ -85,12 +86,12 @@ async function sendMail({ to, subject, text, html }) {
       timeoutPromise
     ]);
     
-    console.timeEnd('[NOTIFY] Email Send Duration');
+    console.timeEnd(timerLabel);
     logger.info(`Email sent to ${to}: ${info && info.messageId}`);
     console.log('[NOTIFY] ✅ Email sent successfully, Message ID:', info.messageId);
     return info;
   } catch (err) {
-    console.timeEnd('[NOTIFY] Email Send Duration');
+    console.timeEnd(timerLabel);
     logger.error('Error sending email', err);
     console.error('[NOTIFY] ❌ Email error:', err.message);
 

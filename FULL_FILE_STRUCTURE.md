@@ -1,0 +1,168 @@
+# Full Workspace File Structure
+
+> The structure below includes all main directories and files in the repository.
+> `node_modules/` directories are shown as placeholders only; their internal contents are omitted to keep the file readable.
+
+- .env
+- .env.example
+- .git/
+- .gitignore
+- admin-app/
+  - admin-app/
+    - public/
+      - uploads/
+        - properties/
+  - app.js
+  - logs/
+  - node_modules/
+  - package.json
+  - package-lock.json
+  - public/
+  - src/
+    - modules/
+      - admin/
+        - admin.controller.js
+        - admin.routes.js
+        - adminReports.controller.js
+      - index.js
+      - stripeConnect.controller.js
+    - routes/
+  - test-ai.js/
+  - test-stripe.js
+  - views/
+    - admin-add-invoice.hbs
+    - admin-add-property.hbs
+    - admin-add-tenant.hbs
+    - admin-applications.hbs
+    - admin-change-password.hbs
+    - admin-dashboard.hbs
+    - admin-login.hbs
+    - admin-maintenance.hbs
+    - admin-notifications.hbs
+    - admin-payments.hbs
+    - admin-properties.hbs
+    - admin-property-edit.hbs
+    - admin-property-view.hbs
+    - admin-rent-overdue.hbs
+    - admin-reports.hbs
+    - admin-settings.hbs
+    - admin-signup.hbs
+    - admin-tenant-edit.hbs
+    - admin-tenant-view.hbs
+    - admin-tenants.hbs
+    - admin-verify-otp.hbs
+- CONTRIBUTING.md
+- create-admin.js
+- jobs/
+  - applyLateFees.js
+  - expireApplications.js
+  - generateMonthlyRentInvoices.js
+  - sendExpiryWarnings.js
+  - sendRentReminders.js
+- LICENSE
+- logs/
+  - app.log
+  - error.log
+  - payments.log
+- migrate-multi-tenant.js
+- migrate-verified-status.js
+- node_modules/
+- package.json
+- package-lock.json
+- Procfile
+- README.md
+- scratch/
+  - replace_webhook.js
+  - update_admin_controller.py
+  - update_tenant_controller.py
+- SECURITY-NOTES.md
+- SENDGRID_SETUP.md
+- shared/
+  - config/
+    - db.js
+  - jobs/
+    - billingJobs.js
+  - middleware/
+    - auth.js
+    - security.js
+  - models/
+    - admin.js
+    - applicant.js
+    - application.js
+    - area.js
+    - auditLog.js
+    - cancellation.js
+    - index.js
+    - invoice.js
+    - ledgerEntry.js
+    - loan.js
+    - notification.js
+    - payment.js
+    - property.js
+    - registration.js
+    - tenant.js
+    - testimonial.js
+    - ticket.js
+  - realtime/
+    - emitter.js
+  - scripts/
+    - createIndexes.js
+  - services/
+    - ai.service.js
+    - auditService.js
+    - cronService.js
+    - notificationService.js
+    - paymentService.js
+    - queueService.js
+    - test-ai.js
+  - utils/
+    - currency.js
+    - index.js
+- tenant-app/
+  - app.js
+  - logs/
+    - app.log
+  - node_modules/
+  - package.json
+  - package-lock.json
+  - public/
+  - src/
+    - modules/
+      - index.js
+      - tenant/
+        - index.js
+        - tenant.controller.js
+        - tenant.routes.js
+        - tenant.service.js
+    - routes/
+      - index.js
+  - views/
+    - applications.hbs
+    - apply-property.hbs
+    - dashboard.hbs
+    - forgot-password.hbs
+    - invoices.hbs
+    - login.hbs
+    - maintenance.hbs
+    - notifications.hbs
+    - payment-cancelled.hbs
+    - payments.hbs
+    - payment-success.hbs
+    - profile.hbs
+    - properties.hbs
+    - register.hbs
+    - reset-password.hbs
+    - tenant-change-password.hbs
+    - tenant-verify-otp.hbs
+- test-email.js
+- TESTING-GUIDE.md
+- update.py
+- utils/
+  - emailService.js
+  - jwt.js
+  - ledgerService.js
+  - logger.js
+  - notify.js
+  - pdfGenerator.js
+  - rent.js
+  - validation.js

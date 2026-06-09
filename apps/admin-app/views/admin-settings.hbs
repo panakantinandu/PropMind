@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{csrfToken}}">
+    <title>Settings - LeaseHub Admin</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background: #f5f7fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem 2rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .navbar-brand { color: white !important; font-weight: 700; font-size: 1.5rem; }
+        .nav-link { color: rgba(255, 255, 255, 0.9) !important; margin: 0 10px; }
+        .nav-link:hover { color: white !important; }
+        .main-content { padding: 30px; max-width: 1400px; margin: 0 auto; }
+        .page-header { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); margin-bottom: 30px; }
+        .content-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); margin-bottom: 30px; }
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .status-connected { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+        .status-pending { background: #fff3e0; color: #ef6c00; border: 1px solid #ffcc80; }
+        .status-disconnected { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+        .setting-section { padding-bottom: 20px; border-bottom: 1px solid #eee; margin-bottom: 20px; }
+        .setting-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    </style>
+    </head>
+    <body>
+        {{> admin_header}}
+
+    <div class="main-content">
+        <div class="page-header">
+            <h2><i class="fas fa-cog"></i> Platform Settings</h2>
+            <p>Manage your account, payments, and platform preferences.</p>
+        </div>
+
+        {{#if success}}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{success}}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        {{/if}}
+
+        {{#if error}}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{error}}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        {{/if}}
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="content-card">
+                    <div class="setting-section">
+                        <h4><i class="fab fa-stripe text-primary"></i> Payment Integration (Stripe Connect)</h4>
+                        <p class="text-muted mt-2">Connect your Stripe account to receive rent payments directly from your tenants. We use Stripe Connect to ensure fast and secure transfers.</p>
+                        
+                        <div class="mt-4 p-4 rounded" style="background: #f8f9fa; border: 1px solid #e9ecef;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-1">Connection Status</h5>
+                                    {{#if stripeConnected}}
+                                        {{#if (eq stripeStatus 'active')}}
+                                            <span class="status-badge status-connected"><i class="fas fa-check-circle"></i> Connected & Active</span>
+                                        {{else}}
+                                            <span class="status-badge status-pending"><i class="fas fa-clock"></i> Pending Review or Details Required</span>
+                                        {{/if}}
+                                    {{else}}
+                                        <span class="status-badge status-disconnected"><i class="fas fa-times-circle"></i> Not Connected</span>
+                                    {{/if}}
+                                </div>
+                                <div>
+                                    {{#if stripeConnected}}
+                                        <a href="/admin/stripe/connect" class="btn btn-outline-primary">
+                                            <i class="fas fa-sync-alt"></i> Update Details / Refresh
+                                        </a>
+                                    {{else}}
+                                        <a href="/admin/stripe/connect" class="btn btn-primary btn-lg">
+                                            <i class="fab fa-stripe-s"></i> Connect Payment Account
+                                        </a>
+                                    {{/if}}
+                                </div>
+                            </div>
+                            
+                            {{#if stripeConnected}}
+                            <div class="mt-3 pt-3 border-top">
+                                <small class="text-muted"><strong>Account ID:</strong> {{admin.stripeAccountId}}</small>
+                            </div>
+                            {{/if}}
+                        </div>
+                    </div>
+                    
+                    <div class="setting-section">
+                        <h4><i class="fas fa-user-shield text-info"></i> Account Security</h4>
+                        <p class="text-muted mt-2">Manage your admin password and security preferences.</p>
+                        <a href="/admin/change-password" class="btn btn-outline-secondary mt-2">
+                            <i class="fas fa-key"></i> Change Password
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="content-card">
+                    <h5 class="mb-3"><i class="fas fa-info-circle text-primary"></i> About Payments</h5>
+                    <ul class="list-unstyled text-muted">
+                        <li class="mb-2"><i class="fas fa-check text-success mr-2"></i> Tenants pay rent directly to your connected bank account.</li>
+                        <li class="mb-2"><i class="fas fa-check text-success mr-2"></i> Fast payouts and robust fraud protection via Stripe.</li>
+                        <li class="mb-2"><i class="fas fa-check text-success mr-2"></i> The platform automatically updates invoice statuses upon successful payment.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tenant Login - LeaseHub</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  @keyframes orb1Drift {
+    0%,100% { transform: translate(0,0) scale(1); opacity:.55; }
+    40%     { transform: translate(60px,-40px) scale(1.12); opacity:.7; }
+    70%     { transform: translate(-30px,30px) scale(.9); opacity:.45; }
+  }
+  @keyframes orb2Drift {
+    0%,100% { transform: translate(0,0) scale(1); opacity:.45; }
+    35%     { transform: translate(-50px,35px) scale(.9); opacity:.6; }
+    70%     { transform: translate(35px,-25px) scale(1.1); opacity:.5; }
+  }
+  @keyframes orb3Drift {
+    0%,100% { transform: translate(0,0) scale(1); }
+    50%     { transform: translate(25px,40px) scale(1.15); }
+  }
+  @keyframes cardIn {
+    from { opacity:0; transform:translateY(36px) scale(.97); }
+    to   { opacity:1; transform:translateY(0) scale(1); }
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(14px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  @keyframes shimmerBtn {
+    0%   { background-position:-200% center; }
+    100% { background-position:200% center; }
+  }
+  @keyframes spin {
+    to { transform:rotate(360deg); }
+  }
+  @keyframes checkPop {
+    0%   { transform:scale(0) rotate(-10deg); opacity:0; }
+    60%  { transform:scale(1.2) rotate(4deg); opacity:1; }
+    100% { transform:scale(1) rotate(0deg); opacity:1; }
+  }
+  @keyframes ripple {
+    to { transform:scale(3.5); opacity:0; }
+  }
+  @keyframes particleRise {
+    0%   { transform:translateY(0) translateX(0); opacity:0; }
+    10%  { opacity:1; }
+    90%  { opacity:.6; }
+    100% { transform:translateY(-320px) translateX(var(--dx)); opacity:0; }
+  }
+  @keyframes pulseRing {
+    0%   { box-shadow:0 0 0 0 rgba(56,189,248,.5); }
+    70%  { box-shadow:0 0 0 14px rgba(56,189,248,0); }
+    100% { box-shadow:0 0 0 0 rgba(56,189,248,0); }
+  }
+  @keyframes lineGrow {
+    from { transform:scaleX(0); }
+    to   { transform:scaleX(1); }
+  }
+  @keyframes successSlide {
+    from { opacity:0; transform:translateY(-10px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  body {
+    font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    overflow:hidden;
+    background:#071520;
+    position:relative;
+  }
+
+  .bg-mesh {
+    position:fixed; inset:0; z-index:0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 20%, #0a2a3c 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 80% 80%, #071a30 0%, transparent 60%),
+      radial-gradient(ellipse 50% 50% at 50% 50%, #060e1a 0%, transparent 100%);
+    background-color:#071520;
+  }
+
+  .orb {
+    position:fixed; border-radius:50%;
+    filter:blur(72px); pointer-events:none; z-index:1;
+  }
+  .orb-1 {
+    width:420px; height:420px;
+    background:radial-gradient(circle, #0369a1 0%, #075985 60%, transparent 100%);
+    top:-100px; left:-100px;
+    animation:orb1Drift 12s ease-in-out infinite;
+  }
+  .orb-2 {
+    width:360px; height:360px;
+    background:radial-gradient(circle, #0891b2 0%, #164e63 60%, transparent 100%);
+    bottom:-80px; right:-80px;
+    animation:orb2Drift 15s ease-in-out infinite;
+  }
+  .orb-3 {
+    width:260px; height:260px;
+    background:radial-gradient(circle, #0284c7 0%, #0c4a6e 60%, transparent 100%);
+    bottom:120px; left:80px;
+    animation:orb3Drift 18s ease-in-out infinite;
+  }
+
+  .grid-overlay {
+    position:fixed; inset:0; z-index:1; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
+    background-size:48px 48px;
+  }
+
+  .particles { position:fixed; inset:0; z-index:2; pointer-events:none; }
+  .particle {
+    position:absolute; bottom:0;
+    border-radius:50%;
+    background:rgba(56,189,248,.7);
+    animation:particleRise linear infinite;
+  }
+
+  .login-card {
+    position:relative; z-index:10;
+    width:100%; max-width:460px;
+    background:rgba(7,21,32,.75);
+    border:1px solid rgba(56,189,248,.2);
+    border-radius:28px;
+    padding:48px 44px 40px;
+    box-shadow:
+      0 0 0 1px rgba(56,189,248,.06),
+      0 40px 80px rgba(0,0,0,.65),
+      0 0 80px rgba(3,105,161,.14),
+      inset 0 1px 0 rgba(255,255,255,.05);
+    backdrop-filter:blur(28px);
+    -webkit-backdrop-filter:blur(28px);
+    animation:cardIn .75s cubic-bezier(.16,1,.3,1) both;
+    overflow:hidden;
+  }
+
+  .login-card::before {
+    content:'';
+    position:absolute; top:0; left:50%; transform:translateX(-50%);
+    width:60%; height:1px;
+    background:linear-gradient(90deg, transparent, rgba(56,189,248,.55), transparent);
+  }
+
+  .logo-row {
+    display:flex; align-items:center; justify-content:center; gap:14px;
+    margin-bottom:6px;
+    animation:fadeUp .6s .1s both;
+  }
+  .logo-icon {
+    width:54px; height:54px; border-radius:18px;
+    background:linear-gradient(135deg,#0369a1,#0891b2);
+    display:flex; align-items:center; justify-content:center;
+    font-size:26px;
+    box-shadow:0 8px 24px rgba(3,105,161,.5);
+    animation:pulseRing 2.8s ease-in-out infinite;
+    border:1px solid rgba(56,189,248,.3);
+    flex-shrink:0;
+  }
+  .logo-text { font-size:2rem; font-weight:800; color:#fff; letter-spacing:-.5px; }
+  .logo-text span { color:rgba(56,189,248,.7); font-weight:400; }
+
+  .tagline {
+    text-align:center; color:rgba(255,255,255,.4);
+    font-size:.82rem; font-weight:500; letter-spacing:.8px; text-transform:uppercase;
+    margin-bottom:10px;
+    animation:fadeUp .6s .18s both;
+  }
+
+  .accent-line {
+    height:1px; margin:0 auto 28px;
+    width:80px;
+    background:linear-gradient(90deg,transparent,rgba(56,189,248,.65),transparent);
+    transform-origin:center;
+    animation:lineGrow .7s .3s both;
+  }
+
+  .demo-banner {
+    background:linear-gradient(135deg,rgba(3,105,161,.2),rgba(8,145,178,.12));
+    border:1px solid rgba(56,189,248,.28);
+    border-radius:14px;
+    padding:12px 16px;
+    margin-bottom:26px;
+    display:flex; align-items:center; gap:12px;
+    cursor:pointer;
+    transition:background .2s, transform .15s;
+    animation:fadeUp .6s .28s both;
+  }
+  .demo-banner:hover {
+    background:linear-gradient(135deg,rgba(3,105,161,.32),rgba(8,145,178,.22));
+    transform:translateY(-1px);
+  }
+  .demo-banner:active { transform:translateY(0); }
+  .demo-key {
+    width:34px; height:34px; border-radius:10px;
+    background:rgba(56,189,248,.12);
+    border:1px solid rgba(56,189,248,.22);
+    display:flex; align-items:center; justify-content:center;
+    font-size:16px; flex-shrink:0;
+  }
+  .demo-info { flex:1; }
+  .demo-label { font-size:.72rem; color:rgba(56,189,248,.65); text-transform:uppercase; letter-spacing:.6px; font-weight:600; margin-bottom:3px; }
+  .demo-creds { font-size:.88rem; color:rgba(255,255,255,.9); font-weight:600; }
+  .demo-creds strong { color:#38bdf8; }
+  .demo-fill-hint { font-size:.72rem; color:rgba(56,189,248,.55); white-space:nowrap; text-align:right; font-weight:500; }
+
+  .field { margin-bottom:20px; }
+  .field:nth-child(1) { animation:fadeUp .6s .36s both; }
+  .field:nth-child(2) { animation:fadeUp .6s .44s both; }
+
+  .field-label {
+    display:flex; align-items:center; gap:6px;
+    font-size:.75rem; font-weight:700; color:rgba(255,255,255,.5);
+    text-transform:uppercase; letter-spacing:.7px;
+    margin-bottom:9px;
+  }
+  .field-label-dot {
+    width:5px; height:5px; border-radius:50%;
+    background:rgba(56,189,248,.5);
+  }
+
+  .input-wrap {
+    position:relative;
+    border-radius:14px;
+    background:#0b2233;
+    border:1.5px solid rgba(56,189,248,.18);
+    transition:border-color .2s, box-shadow .2s, background .2s;
+  }
+  .input-wrap:focus-within {
+    border-color:rgba(56,189,248,.6);
+    box-shadow:0 0 0 4px rgba(3,105,161,.22), 0 2px 12px rgba(3,105,161,.15);
+    background:#0d2a40;
+  }
+
+  .input-icon {
+    position:absolute; left:15px; top:50%; transform:translateY(-50%);
+    width:18px; height:18px; pointer-events:none;
+    color:rgba(56,189,248,.45);
+    transition:color .2s;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .input-wrap:focus-within .input-icon { color:rgba(56,189,248,.9); }
+  .input-icon svg { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+
+  .field-input {
+    width:100%; padding:14px 16px 14px 46px;
+    background:transparent;
+    border:none; outline:none;
+    color:#e0f2fe;
+    font-size:.95rem; font-family:'Inter',sans-serif;
+    caret-color:#38bdf8;
+    border-radius:14px;
+  }
+  .field-input::placeholder { color:rgba(56,189,248,.25); }
+  .field-input:-webkit-autofill {
+    -webkit-text-fill-color:#e0f2fe !important;
+    -webkit-box-shadow:0 0 0 100px #0b2233 inset !important;
+    transition:background-color 9999s ease-in-out 0s;
+  }
+
+  .pwd-input { padding-right:48px; }
+
+  .toggle-eye {
+    position:absolute; right:14px; top:50%; transform:translateY(-50%);
+    background:none; border:none; cursor:pointer; padding:4px;
+    color:rgba(56,189,248,.4); transition:color .15s, transform .15s;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .toggle-eye:hover { color:rgba(56,189,248,.9); transform:translateY(-50%) scale(1.1); }
+  .toggle-eye svg { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+
+  .btn-submit {
+    width:100%; padding:15px;
+    border-radius:14px; border:none; cursor:pointer;
+    font-family:'Inter',sans-serif; font-size:1rem; font-weight:700;
+    letter-spacing:.2px; color:#fff;
+    background:linear-gradient(135deg,#0369a1 0%,#0891b2 50%,#0369a1 100%);
+    background-size:200% 100%;
+    animation:shimmerBtn 2.4s linear infinite, fadeUp .6s .54s both;
+    box-shadow:0 8px 28px rgba(3,105,161,.5);
+    transition:transform .15s, box-shadow .15s;
+    position:relative; overflow:hidden;
+    margin-top:8px;
+  }
+  .btn-submit:hover { transform:translateY(-2px); box-shadow:0 14px 36px rgba(3,105,161,.65); }
+  .btn-submit:active { transform:translateY(0); }
+  .btn-submit:disabled { opacity:.7; cursor:not-allowed; }
+  .btn-inner { display:flex; align-items:center; justify-content:center; gap:9px; position:relative; z-index:1; }
+
+  .btn-spinner {
+    display:none; width:18px; height:18px;
+    border:2.5px solid rgba(255,255,255,.3);
+    border-top-color:#fff; border-radius:50%;
+    animation:spin .7s linear infinite;
+  }
+
+  .ripple-wave {
+    position:absolute; border-radius:50%;
+    background:rgba(255,255,255,.18);
+    width:40px; height:40px;
+    transform:scale(0); opacity:1;
+    animation:ripple .5s ease-out forwards;
+    pointer-events:none;
+  }
+
+  .alert-danger-custom {
+    display:flex; align-items:center; gap:10px;
+    background:rgba(220,38,38,.14);
+    border:1px solid rgba(248,113,113,.3);
+    border-radius:12px;
+    padding:11px 14px;
+    color:#fca5a5; font-size:.88rem;
+    margin-bottom:20px;
+  }
+  .alert-danger-custom svg { width:17px; height:17px; stroke:#f87171; flex-shrink:0; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+
+  .alert-success-custom {
+    display:flex; align-items:center; gap:10px;
+    background:rgba(22,163,74,.14);
+    border:1px solid rgba(74,222,128,.3);
+    border-radius:12px;
+    padding:11px 14px;
+    color:#86efac; font-size:.88rem;
+    margin-bottom:20px;
+  }
+  .alert-success-custom svg { width:17px; height:17px; stroke:#4ade80; flex-shrink:0; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+
+  .success-overlay {
+    position:absolute; inset:0; border-radius:28px; z-index:20;
+    background:linear-gradient(135deg,rgba(7,21,32,.97),rgba(10,42,60,.97));
+    display:none; flex-direction:column;
+    align-items:center; justify-content:center; gap:14px;
+  }
+  .success-check {
+    width:70px; height:70px; border-radius:50%;
+    background:linear-gradient(135deg,#0369a1,#0891b2);
+    display:flex; align-items:center; justify-content:center;
+    font-size:30px; color:#fff;
+    box-shadow:0 12px 36px rgba(3,105,161,.6);
+    animation:checkPop .5s .05s both;
+  }
+  .success-title { font-size:1.2rem; font-weight:700; color:#fff; opacity:0; animation:successSlide .4s .4s both; }
+  .success-sub { font-size:.85rem; color:rgba(56,189,248,.75); opacity:0; animation:successSlide .4s .55s both; }
+
+  .bottom-links {
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    margin-top:22px;
+    animation:fadeUp .6s .62s both;
+  }
+  .bottom-links a {
+    color:rgba(56,189,248,.55); font-size:.85rem; text-decoration:none;
+    transition:color .15s;
+  }
+  .bottom-links a:hover { color:rgba(56,189,248,1); }
+  .bottom-links a u { text-underline-offset:3px; }
+  .bottom-links-sep { color:rgba(255,255,255,.2); font-size:.85rem; }
+
+  @media(max-width:520px) {
+    .login-card { padding:36px 24px 32px; }
+    .logo-text { font-size:1.7rem; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="bg-mesh"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="grid-overlay"></div>
+  <div class="particles" id="particles"></div>
+
+  <div class="login-card" id="loginCard">
+
+    <div class="success-overlay" id="successOverlay">
+      <div class="success-check">✓</div>
+      <div class="success-title">Welcome back!</div>
+      <div class="success-sub">Redirecting to your portal…</div>
+    </div>
+
+    <div class="logo-row">
+      <div class="logo-icon">🏠</div>
+      <div class="logo-text">Lease<span>Hub</span></div>
+    </div>
+
+    <p class="tagline">Tenant Portal</p>
+    <div class="accent-line"></div>
+
+    <div class="demo-banner" id="demoBanner">
+      <div class="demo-key">🔑</div>
+      <div class="demo-info">
+        <div class="demo-label">Demo credentials</div>
+        <div class="demo-creds">Username: <strong>Tenant2</strong> &nbsp;/&nbsp; Password: <strong>Tenant2@123</strong></div>
+      </div>
+      <div class="demo-fill-hint">↓ autofill</div>
+    </div>
+
+    {{#if error}}
+    <div class="alert-danger-custom">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      {{error}}
+    </div>
+    {{/if}}
+
+    {{#if success}}
+    <div class="alert-success-custom">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      {{success}}
+    </div>
+    {{/if}}
+
+    <form id="loginForm" method="POST" action="/tenant/login" novalidate>
+      <input type="hidden" name="_csrf" value="{{csrfToken}}">
+
+      <div class="field">
+        <label class="field-label" for="loginId">
+          <span class="field-label-dot"></span> Email address or Tenant ID
+        </label>
+        <div class="input-wrap">
+          <span class="input-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </span>
+          <input
+            type="text"
+            class="field-input"
+            id="loginId"
+            name="loginId"
+            placeholder="Enter your email address or tenant ID"
+            required
+          >
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="password">
+          <span class="field-label-dot"></span> Password
+        </label>
+        <div class="input-wrap">
+          <span class="input-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </span>
+          <input
+            type="password"
+            class="field-input pwd-input"
+            id="password"
+            name="password"
+            placeholder="Enter your password"
+            required
+            autocomplete="current-password"
+          >
+          <button type="button" class="toggle-eye" id="togglePwd" aria-label="Toggle password visibility">
+            <svg id="eyeSvg" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit" id="loginBtn">
+        <div class="btn-inner">
+          <div class="btn-spinner" id="btnSpinner"></div>
+          <span id="btnLabel">Login</span>
+          <svg id="btnArrow" viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+      </button>
+    </form>
+
+    <div class="bottom-links">
+      <a href="/tenant/forgot-password"><u>Forgot Password?</u></a>
+      <span class="bottom-links-sep">|</span>
+      <a href="/tenant/register/form"><u>Register here</u></a>
+    </div>
+
+  </div>
+
+  <script nonce="{{cspNonce}}">
+    (function () {
+
+      /* Particles */
+      var pc = document.getElementById('particles');
+      for (var i = 0; i < 22; i++) {
+        (function () {
+          var p = document.createElement('div');
+          p.className = 'particle';
+          var dx = ((Math.random() - 0.5) * 80).toFixed(0) + 'px';
+          var sz = (Math.random() * 2.5 + 1.5).toFixed(1);
+          p.style.cssText =
+            'left:' + (Math.random() * 100).toFixed(1) + '%;' +
+            'width:' + sz + 'px;height:' + sz + 'px;' +
+            '--dx:' + dx + ';' +
+            'animation-duration:' + (Math.random() * 10 + 7).toFixed(1) + 's;' +
+            'animation-delay:-' + (Math.random() * 12).toFixed(1) + 's;' +
+            'opacity:' + (Math.random() * 0.5 + 0.2).toFixed(2) + ';';
+          pc.appendChild(p);
+        })();
+      }
+
+      /* Password toggle */
+      var toggleBtn = document.getElementById('togglePwd');
+      var pwdInput  = document.getElementById('password');
+      var eyeSvg    = document.getElementById('eyeSvg');
+      var eyeOff = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+      var eyeOn  = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+      toggleBtn.addEventListener('click', function () {
+        var show = pwdInput.type === 'password';
+        pwdInput.type = show ? 'text' : 'password';
+        eyeSvg.innerHTML = show ? eyeOff : eyeOn;
+      });
+
+      /* Demo autofill */
+      function typeInto(el, text, cb) {
+        el.value = '';
+        var i = 0;
+        var t = setInterval(function () {
+          el.value += text[i++];
+          if (i === text.length) { clearInterval(t); if (cb) setTimeout(cb, 100); }
+        }, 55);
+      }
+      document.getElementById('demoBanner').addEventListener('click', function () {
+        var u = document.getElementById('loginId');
+        var p = document.getElementById('password');
+        typeInto(u, 'Tenant2', function () { typeInto(p, 'Tenant2@123'); });
+        this.style.background = 'linear-gradient(135deg,rgba(3,105,161,.35),rgba(8,145,178,.25))';
+        var self = this;
+        setTimeout(function () { self.style.background = ''; }, 700);
+      });
+
+      /* Ripple */
+      var loginBtn = document.getElementById('loginBtn');
+      loginBtn.addEventListener('click', function (e) {
+        var rect = loginBtn.getBoundingClientRect();
+        var r = document.createElement('span');
+        r.className = 'ripple-wave';
+        r.style.left = (e.clientX - rect.left - 20) + 'px';
+        r.style.top  = (e.clientY - rect.top  - 20) + 'px';
+        loginBtn.appendChild(r);
+        setTimeout(function () { r.remove(); }, 550);
+      });
+
+      /* Submit — no preventDefault, real POST goes through */
+      var form    = document.getElementById('loginForm');
+      var spinner = document.getElementById('btnSpinner');
+      var label   = document.getElementById('btnLabel');
+      var arrow   = document.getElementById('btnArrow');
+      var overlay = document.getElementById('successOverlay');
+      form.addEventListener('submit', function () {
+        spinner.style.display = 'block';
+        label.textContent = 'Signing in…';
+        arrow.style.display = 'none';
+        loginBtn.disabled = true;
+        setTimeout(function () {
+          overlay.style.display = 'flex';
+        }, 30);
+      });
+
+    })();
+  </script>
+
+</body>
+</html>

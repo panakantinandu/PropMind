@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{csrfToken}}">
+    <title>Maintenance - LeaseHub Admin</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background: #f5f7fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem 2rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .navbar-brand { color: white !important; font-weight: 700; font-size: 1.5rem; }
+        .nav-link { color: rgba(255, 255, 255, 0.9) !important; margin: 0 10px; }
+        .nav-link:hover { color: white !important; }
+        .main-content { padding: 30px; max-width: 1400px; margin: 0 auto; }
+        .page-header { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); margin-bottom: 30px; }
+        .stat-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); border-left: 4px solid; }
+        .stat-card .value { font-size: 2rem; font-weight: 700; margin: 10px 0; }
+        .stat-card .label { color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-open { border-left-color: #f44336; }
+        .stat-progress { border-left-color: #17a2b8; }
+        .stat-resolved { border-left-color: #28a745; }
+        .stat-total { border-left-color: #ff9800; }
+        .card { border: none; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+        .badge-priority-low { background: #28a745; }
+        .badge-priority-medium { background: #ffc107; color: #000; }
+        .badge-priority-high { background: #dc3545; }
+        .badge-status-open { background: #6c757d; }
+        .badge-status-in-progress { background: #17a2b8; }
+        .badge-status-resolved { background: #28a745; }
+        .table td { vertical-align: middle; }
+    </style>
+    </head>
+    <body>
+        {{> admin_header}}
+
+    <div class="main-content">
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="mb-1"><i class="fas fa-tools"></i> Maintenance Requests</h3>
+                    <p class="text-muted mb-0">Track and resolve tenant maintenance tickets</p>
+                </div>
+            </div>
+        </div>
+
+        {{#if maintenanceSuccess}}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> {{maintenanceSuccess}}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        {{/if}}
+
+        {{#if maintenanceError}}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i> {{maintenanceError}}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        {{/if}}
+
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="stat-card stat-open">
+                    <div class="value">{{openCount}}</div>
+                    <div class="label">Open</div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card stat-progress">
+                    <div class="value">{{inProgressCount}}</div>
+                    <div class="label">In Progress</div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card stat-resolved">
+                    <div class="value">{{resolvedCount}}</div>
+                    <div class="label">Resolved</div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card stat-total">
+                    <div class="value">{{totalCount}}</div>
+                    <div class="label">Total Requests</div>
+                </div>
+            </div>
+        </div>
+
+        {{#if tickets.length}}
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">All Tickets</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Ticket</th>
+                                <th>Tenant</th>
+                                <th>Property</th>
+                                <th>AI Category</th>
+                                <th>AI Priority</th>
+                                <th>Status</th>
+                                <th>Submitted</th>
+                                <th class="text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{#each tickets}}
+                            <tr>
+                                <td>
+                                    <strong>{{title}}</strong><br>
+                                    <small class="text-muted">{{description}}</small><br>
+                                    {{#if aiExplanation}}<small class="text-muted">AI: {{aiExplanation}}</small>{{/if}}
+                                    {{#if aiResponseTime}}<br><small class="text-info">Response: {{aiResponseTime}}</small>{{/if}}
+                                    {{#if aiUrgencyScore}}<br><small class="text-warning">Urgency: {{aiUrgencyScore}}/10</small>{{/if}}
+                                </td>
+                                <td>
+                                    {{#if tenantId}}
+                                        {{tenantId.firstname}} {{tenantId.lastname}}<br>
+                                        <small class="text-muted">{{tenantId.email}}</small>
+                                    {{else}}
+                                        <span class="text-muted">N/A</span>
+                                    {{/if}}
+                                </td>
+                                <td>
+                                    {{#if tenantId.propertyId}}
+                                        {{tenantId.propertyId.propertyname}}
+                                    {{else}}
+                                        <span class="text-muted">N/A</span>
+                                    {{/if}}
+                                </td>
+                                <td>
+                                    {{#if aiCategory}}
+                                        <span class="badge badge-secondary text-uppercase">{{aiCategory}}</span>
+                                    {{else}}
+                                        <span class="text-muted">general</span>
+                                    {{/if}}
+                                </td>
+                                <td>
+                                    {{#if aiPriority}}
+                                        <span class="badge badge-priority-{{aiPriority}} text-uppercase">{{aiPriority}}</span>
+                                    {{else}}
+                                        <span class="badge badge-priority-{{priority}} text-uppercase">{{priority}}</span>
+                                    {{/if}}
+                                </td>
+                                <td>
+                                    <span class="badge badge-status-{{status}} text-capitalize">{{status}}</span>
+                                </td>
+                                <td>{{formatDate createdAt}}</td>
+                                <td class="text-right">
+                                    {{#unless (eq status 'resolved')}}
+                                        {{#if (eq status 'open')}}
+                                        <button class="btn btn-sm btn-outline-info update-status" data-ticket-id="{{_id}}" data-status="in-progress">
+                                            <i class="fas fa-play"></i> In Progress
+                                        </button>
+                                        {{/if}}
+                                        <button class="btn btn-sm btn-outline-success update-status" data-ticket-id="{{_id}}" data-status="resolved">
+                                            <i class="fas fa-check"></i> Resolve
+                                        </button>
+                                    {{else}}
+                                        <span class="text-success"><i class="fas fa-check-circle"></i> Closed</span>
+                                    {{/unless}}
+                                </td>
+                            </tr>
+                            {{/each}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {{else}}
+        <div class="card text-center p-5">
+            <div class="card-body">
+                <i class="fas fa-info-circle fa-3x text-info mb-3"></i>
+                <h5>No Maintenance Requests</h5>
+                <p class="text-muted mb-0">There are no maintenance requests at this time.</p>
+            </div>
+        </div>
+        {{/if}}
+    </div>
+
+    <!-- Toast container -->
+    <div aria-live="polite" aria-atomic="true" style="position: fixed; top: 20px; right: 20px; z-index: 1080; min-width: 280px;">
+        <div id="statusToast" class="toast" data-delay="2000" style="min-width: 280px;">
+            <div id="statusToastHeader" class="toast-header bg-success text-white">
+                <i class="fas fa-check-circle mr-2"></i>
+                <strong class="mr-auto" id="statusToastTitle">Updated</strong>
+                <button type="button" class="ml-2 mb-1 close text-white" data-dismiss="toast" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="toast-body" id="statusToastBody">Ticket status updated</div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+    <script nonce="{{cspNonce}}">
+        $(function() {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            $('.update-status').on('click', function() {
+                const ticketId = $(this).data('ticket-id');
+                const status = $(this).data('status');
+
+                if (!confirm(`Mark this ticket as ${status}?`)) {
+                    return;
+                }
+
+                $.ajax({
+                    url: `/admin/maintenance/${ticketId}/status`,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    headers: {
+                        ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    data: JSON.stringify({ status }),
+                    success: function(response) {
+                        $('#statusToastHeader')
+                            .removeClass('bg-danger')
+                            .addClass('bg-success');
+                        $('#statusToastTitle').text('Success');
+                        $('#statusToastBody').text(response.message || 'Ticket updated');
+                        $('#statusToast').toast('show');
+                        setTimeout(() => window.location.reload(), 1200);
+                    },
+                    error: function(xhr) {
+                        const msg = xhr.responseJSON?.error || 'Failed to update status';
+                        $('#statusToastHeader')
+                            .removeClass('bg-success')
+                            .addClass('bg-danger');
+                        $('#statusToastTitle').text('Error');
+                        $('#statusToastBody').text(msg);
+                        $('#statusToast').toast('show');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
