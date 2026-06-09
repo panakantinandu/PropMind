@@ -1,0 +1,76 @@
+services:
+  # ─── Admin App ───────────────────────────────────────────
+  - type: web
+    name: propmaind-admin
+    runtime: node
+    rootDir: apps/admin-app
+    buildCommand: npm install
+    startCommand: npm start
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: AI_PROVIDER
+        value: openai
+      - key: REDIS_URL
+        sync: false
+      - key: TENANT_URL
+        sync: false
+      - key: ADMIN_URL
+        sync: false
+
+  # ─── Tenant App ──────────────────────────────────────────
+  - type: web
+    name: propmaind-tenant
+    runtime: node
+    rootDir: apps/tenant-app
+    buildCommand: npm install
+    startCommand: npm start
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: AI_PROVIDER
+        value: openai
+      - key: REDIS_URL
+        sync: false
+      - key: TENANT_URL
+        sync: false
+      - key: ADMIN_URL
+        sync: false
