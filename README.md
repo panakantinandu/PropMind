@@ -11,7 +11,7 @@
 
 **PropMind** automates the complete landlord–tenant lifecycle — from property discovery and lease applications to AI-assisted risk analysis, smart maintenance triage, secure Stripe payments, automated invoicing, and real-time notifications.
 
-[Admin Portal](https://leasehub-admin.onrender.com) · [Tenant Portal](https://leasehub-tenant.onrender.com) · [GitHub](https://github.com/panakantinandu/Property-MS-main)
+[Admin Portal](https://propmind-6mkn.onrender.com) · [Tenant Portal](https://propmind-tenant.onrender.com)
 
 </div>
 
