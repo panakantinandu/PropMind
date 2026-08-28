@@ -28,7 +28,7 @@ Most property management tools are just CRUD apps. PropMind is built around **re
 | 💬 AI Support Assistant | Both admin and tenants can ask natural-language questions; AI queries live DB data |
 | 📊 AI Financial Summary | Admin gets an AI-generated narrative of revenue, dues, and overdue tenants |
 | ⏱️ Automated Enforcement | Cron jobs cancel unpaid deposits, expire stale applications, apply late fees |
-| 🧾 Ledger-based Billing | Invoices ≠ Payments — every transaction creates a traceable ledger entry |
+| 🧾 Ledger-based Billing | Invoices ≠ Payments — every transaction creates a traceable ledger entry. |
 
 ---
 
